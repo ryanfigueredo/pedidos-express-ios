@@ -199,6 +199,14 @@ struct OrderItem: Codable {
         case price
     }
     
+    // Inicializador memberwise explícito
+    init(id: String?, name: String, quantity: Int, price: Double) {
+        self.id = id
+        self.name = name
+        self.quantity = quantity
+        self.price = price
+    }
+    
     // Permitir que id seja opcional (pode não vir do backend)
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

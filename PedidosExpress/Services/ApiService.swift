@@ -378,14 +378,66 @@ class ApiService {
         let url = "\(baseURL)/api/orders/\(orderId)/status"
         let body = try encoder.encode(["status": status])
         
+        #if DEBUG
+        print("📝 ApiService.updateOrderStatus: Atualizando pedido \(orderId) para status '\(status)'")
+        print("   URL: \(url)")
+        #endif
+        
         guard let request = buildRequest(url: url, method: "PATCH", body: body) else {
+            #if DEBUG
+            print("❌ ApiService.updateOrderStatus: Não foi possível criar requisição")
+            #endif
             throw ApiError.invalidURL
         }
         
-        let (_, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                #if DEBUG
+                print("❌ ApiService.updateOrderStatus: Resposta inválida")
+                #endif
+                throw ApiError.invalidResponse
+            }
+            
+            #if DEBUG
+            print("📝 ApiService.updateOrderStatus: Status HTTP \(httpResponse.statusCode)")
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("   Resposta: \(responseString.prefix(500))")
+            }
+            #endif
+            
+            guard httpResponse.statusCode == 200 else {
+                if httpResponse.statusCode == 401 {
+                    #if DEBUG
+                    print("❌ ApiService.updateOrderStatus: Não autorizado (401)")
+                    #endif
+                    throw ApiError.loginFailed
+                } else if httpResponse.statusCode == 404 {
+                    #if DEBUG
+                    print("❌ ApiService.updateOrderStatus: Pedido não encontrado (404)")
+                    #endif
+                    throw ApiError.requestFailed
+                } else {
+                    #if DEBUG
+                    print("❌ ApiService.updateOrderStatus: Erro HTTP \(httpResponse.statusCode)")
+                    #endif
+                    throw ApiError.requestFailed
+                }
+            }
+            
+            #if DEBUG
+            print("✅ ApiService.updateOrderStatus: Status atualizado com sucesso")
+            #endif
+        } catch let error as ApiError {
+            #if DEBUG
+            print("❌ ApiService.updateOrderStatus: Erro ApiError - \(error)")
+            #endif
+            throw error
+        } catch {
+            #if DEBUG
+            print("❌ ApiService.updateOrderStatus: Erro desconhecido - \(error.localizedDescription)")
+            #endif
             throw ApiError.requestFailed
         }
     }
@@ -410,14 +462,66 @@ class ApiService {
         let url = "\(baseURL)/api/orders/\(orderId)"
         let body = try encoder.encode(["items": items])
         
+        #if DEBUG
+        print("✏️ ApiService.updateOrder: Atualizando pedido \(orderId) com \(items.count) item(ns)")
+        print("   URL: \(url)")
+        #endif
+        
         guard let request = buildRequest(url: url, method: "PATCH", body: body) else {
+            #if DEBUG
+            print("❌ ApiService.updateOrder: Não foi possível criar requisição")
+            #endif
             throw ApiError.invalidURL
         }
         
-        let (_, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                #if DEBUG
+                print("❌ ApiService.updateOrder: Resposta inválida")
+                #endif
+                throw ApiError.invalidResponse
+            }
+            
+            #if DEBUG
+            print("✏️ ApiService.updateOrder: Status HTTP \(httpResponse.statusCode)")
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("   Resposta: \(responseString.prefix(500))")
+            }
+            #endif
+            
+            guard httpResponse.statusCode == 200 else {
+                if httpResponse.statusCode == 401 {
+                    #if DEBUG
+                    print("❌ ApiService.updateOrder: Não autorizado (401)")
+                    #endif
+                    throw ApiError.loginFailed
+                } else if httpResponse.statusCode == 404 {
+                    #if DEBUG
+                    print("❌ ApiService.updateOrder: Pedido não encontrado (404)")
+                    #endif
+                    throw ApiError.requestFailed
+                } else {
+                    #if DEBUG
+                    print("❌ ApiService.updateOrder: Erro HTTP \(httpResponse.statusCode)")
+                    #endif
+                    throw ApiError.requestFailed
+                }
+            }
+            
+            #if DEBUG
+            print("✅ ApiService.updateOrder: Pedido atualizado com sucesso")
+            #endif
+        } catch let error as ApiError {
+            #if DEBUG
+            print("❌ ApiService.updateOrder: Erro ApiError - \(error)")
+            #endif
+            throw error
+        } catch {
+            #if DEBUG
+            print("❌ ApiService.updateOrder: Erro desconhecido - \(error.localizedDescription)")
+            #endif
             throw ApiError.requestFailed
         }
     }

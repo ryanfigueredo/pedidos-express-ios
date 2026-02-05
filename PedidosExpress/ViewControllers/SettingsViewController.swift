@@ -1,4 +1,6 @@
 import UIKit
+import Combine
+import os.log
 
 class SettingsViewController: UIViewController {
     private var settingsTableView: UITableView!
@@ -8,6 +10,7 @@ class SettingsViewController: UIViewController {
     private let apiService = ApiService()
     
     private var subscription: Subscription?
+    private var cancellables = Set<AnyCancellable>()
     
     private let settingsItems = [
         "Impressora Bluetooth",
@@ -18,6 +21,8 @@ class SettingsViewController: UIViewController {
     private var user: User?
     private var tenantName: String = "Loja"
     
+    private let logger = Logger(subsystem: "com.pedidosexpress", category: "SettingsViewController")
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Configurações"
@@ -27,6 +32,38 @@ class SettingsViewController: UIViewController {
         setupUI()
         setupTableView()
         loadSubscription()
+        observePrinterHelper()
+    }
+    
+    private func observePrinterHelper() {
+        // Observar mudanças nas impressoras disponíveis
+        printerHelper.$availablePrinters
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] printers in
+                self?.logger.info("📱 SettingsViewController: \(printers.count) impressoras disponíveis")
+            }
+            .store(in: &cancellables)
+        
+        // Observar status de conexão
+        printerHelper.$isConnected
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isConnected in
+                self?.logger.info("🔌 SettingsViewController: Impressora conectada: \(isConnected)")
+            }
+            .store(in: &cancellables)
+        
+        // Observar status de scan
+        printerHelper.$isScanning
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isScanning in
+                if !isScanning {
+                    // Scan finalizado, mostrar resultados
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self?.showPrinterScanResults()
+                    }
+                }
+            }
+            .store(in: &cancellables)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -76,22 +113,110 @@ class SettingsViewController: UIViewController {
     }
     
     private func showPrinterSettings() {
-        let alert = UIAlertController(title: "Impressora Bluetooth", message: nil, preferredStyle: .actionSheet)
+        let statusMessage = printerHelper.isConnected ? "Conectada" : "Desconectada"
+        let printerCount = printerHelper.availablePrinters.count
+        let message = "Status: \(statusMessage)\nImpressoras encontradas: \(printerCount)"
+        
+        let alert = UIAlertController(title: "Impressora Bluetooth", message: message, preferredStyle: .actionSheet)
         
         alert.addAction(UIAlertAction(title: "Buscar Impressoras", style: .default) { [weak self] _ in
+            let logMsg = "🔍 SettingsViewController: Usuário solicitou busca de impressoras"
+            self?.logger.info("\(logMsg)")
+            print("\(logMsg)")
             self?.printerHelper.scanForPrinters()
+            
+            // Mostrar feedback imediato
+            let scanningAlert = UIAlertController(
+                title: "Buscando Impressoras...",
+                message: "Por favor, aguarde. Isso pode levar até 10 segundos.",
+                preferredStyle: .alert
+            )
+            self?.present(scanningAlert, animated: true)
+            
+            // O alerta será fechado quando o scan terminar (via observePrinterHelper)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10.5) {
+                scanningAlert.dismiss(animated: true)
+            }
         })
+        
+        // Mostrar lista de impressoras disponíveis
+        if !printerHelper.availablePrinters.isEmpty {
+            for printer in printerHelper.availablePrinters {
+                let printerName = printer.name ?? "Impressora sem nome"
+                let isCurrentPrinter = printer.identifier == printerHelper.connectedPeripheral?.identifier
+                let actionTitle = isCurrentPrinter ? "\(printerName) ✓" : printerName
+                
+                alert.addAction(UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
+                    self?.logger.info("🔌 SettingsViewController: Conectando à impressora: \(printerName)")
+                    self?.printerHelper.connectToPrinter(printer)
+                    
+                    let connectingAlert = UIAlertController(
+                        title: "Conectando...",
+                        message: "Conectando à \(printerName)",
+                        preferredStyle: .alert
+                    )
+                    self?.present(connectingAlert, animated: true)
+                    
+                    // Aguardar conexão (máximo 10 segundos)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        connectingAlert.dismiss(animated: true)
+                        if self?.printerHelper.isConnected == true {
+                            self?.showAlert(title: "Conectado", message: "Impressora conectada com sucesso!")
+                        } else {
+                            self?.showAlert(title: "Erro", message: "Não foi possível conectar à impressora. Verifique se ela está ligada e próxima.")
+                        }
+                    }
+                })
+            }
+        }
         
         alert.addAction(UIAlertAction(title: "Teste de Impressão", style: .default) { [weak self] _ in
-            self?.printerHelper.testPrint()
+            guard let self = self else { return }
+            if self.printerHelper.isConnected {
+                self.logger.info("🖨️ SettingsViewController: Teste de impressão solicitado")
+                self.printerHelper.testPrint()
+                self.showAlert(title: "Enviado", message: "Comando de teste enviado para a impressora.")
+            } else {
+                self.showAlert(title: "Não Conectado", message: "Conecte uma impressora primeiro.")
+            }
         })
         
-        alert.addAction(UIAlertAction(title: "Desconectar", style: .destructive) { [weak self] _ in
-            self?.printerHelper.disconnect()
-        })
+        if printerHelper.isConnected {
+            alert.addAction(UIAlertAction(title: "Desconectar", style: .destructive) { [weak self] _ in
+                self?.logger.info("🔌 SettingsViewController: Desconectando impressora")
+                self?.printerHelper.disconnect()
+                self?.showAlert(title: "Desconectado", message: "Impressora desconectada.")
+            })
+        }
         
         alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
         
+        // Para iPad
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    private func showPrinterScanResults() {
+        let count = printerHelper.availablePrinters.count
+        if count > 0 {
+            let message = "Encontradas \(count) impressora(s).\n\nToque em 'Impressora Bluetooth' novamente para ver a lista e conectar."
+            showAlert(title: "Busca Concluída", message: message)
+        } else {
+            showAlert(
+                title: "Nenhuma Impressora Encontrada",
+                message: "Não foram encontradas impressoras Bluetooth próximas.\n\nCertifique-se de que:\n• A impressora está ligada\n• O Bluetooth está ativado\n• A impressora está próxima ao dispositivo"
+            )
+        }
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
     

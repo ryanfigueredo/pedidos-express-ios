@@ -1,5 +1,6 @@
 import UIKit
 import CoreBluetooth
+import os.log
 
 class OrdersViewController: UIViewController {
     private var ordersTableView: UITableView!
@@ -15,6 +16,8 @@ class OrdersViewController: UIViewController {
     private var currentSection: OrderSection = .pending
     private var printedOrderIds = Set<String>()
     private var refreshTimer: Timer?
+    
+    private let logger = Logger(subsystem: "com.pedidosexpress", category: "OrdersViewController")
     
     enum OrderSection: Int {
         case pending = 0
@@ -234,13 +237,24 @@ class OrdersViewController: UIViewController {
                 printedOrderIds.insert(order.id)
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                    self?.printerHelper.printOrder(order)
+                    guard let self = self else { return }
+                    self.logger.info("🖨️ OrdersViewController: Auto-imprimindo pedido #\(order.displayId ?? order.id)")
+                    
+                    if self.printerHelper.isConnected {
+                        self.printerHelper.printOrder(order) { success, errorMessage in
+                            if !success {
+                                self.logger.error("❌ OrdersViewController: Erro ao auto-imprimir: \(errorMessage ?? "Desconhecido")")
+                            }
+                        }
+                    } else {
+                        self.logger.warning("⚠️ OrdersViewController: Impressora não conectada, pulando auto-impressão")
+                    }
                     
                     Task {
                         do {
-                            try await self?.apiService.updateOrderStatus(orderId: order.id, status: "printed")
+                            try await self.apiService.updateOrderStatus(orderId: order.id, status: "printed")
                         } catch {
-                            print("Erro ao marcar como impresso: \(error)")
+                            self.logger.error("❌ OrdersViewController: Erro ao marcar como impresso: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -303,7 +317,7 @@ class OrdersViewController: UIViewController {
         } else {
             // Opções normais para pedidos pendentes/impressos
             alert.addAction(UIAlertAction(title: "Imprimir", style: .default) { [weak self] _ in
-                self?.printerHelper.printOrder(order)
+                self?.printOrder(order)
             })
             
             alert.addAction(UIAlertAction(title: "Editar", style: .default) { [weak self] _ in
@@ -367,35 +381,212 @@ class OrdersViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    private func printOrder(_ order: Order) {
+        let logMsg = "🖨️ OrdersViewController: Tentando imprimir pedido #\(order.displayId ?? order.id)"
+        logger.info("\(logMsg)")
+        print("\(logMsg)")
+        
+        guard printerHelper.isConnected else {
+            let errorMsg = "❌ OrdersViewController: Impressora não conectada"
+            logger.error("\(errorMsg)")
+            print("\(errorMsg)")
+            showAlert(
+                title: "Impressora Não Conectada",
+                message: "Conecte uma impressora Bluetooth nas Configurações antes de imprimir."
+            )
+            return
+        }
+        
+        logger.info("✅ OrdersViewController: Impressora conectada, enviando pedido para impressão...")
+        progressIndicator.startAnimating()
+        
+        printerHelper.printOrder(order) { [weak self] success, errorMessage in
+            DispatchQueue.main.async {
+                self?.progressIndicator.stopAnimating()
+                
+                if success {
+                    self?.logger.info("✅ OrdersViewController: Pedido impresso com sucesso")
+                    self?.showAlert(title: "Enviado", message: "Pedido enviado para impressão.")
+                } else {
+                    self?.logger.error("❌ OrdersViewController: Erro ao imprimir: \(errorMessage ?? "Desconhecido")")
+                    self?.showAlert(
+                        title: "Erro ao Imprimir",
+                        message: errorMessage ?? "Não foi possível imprimir o pedido."
+                    )
+                }
+            }
+        }
+    }
+    
     private func showEditOrderDialog(_ order: Order) {
-        // Por enquanto, mostrar um alerta informativo
-        // TODO: Implementar tela de edição completa
+        logger.info("✏️ OrdersViewController: Editando pedido #\(order.displayId ?? order.id)")
+        
         let alert = UIAlertController(
-            title: "Editar Pedido",
-            message: "Funcionalidade de edição será implementada em breve.",
-            preferredStyle: .alert
+            title: "Editar Pedido #\(order.displayId ?? String(order.id.prefix(8)))",
+            message: "Selecione o item para editar:",
+            preferredStyle: .actionSheet
         )
         
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        // Listar itens do pedido
+        for (index, item) in order.items.enumerated() {
+            alert.addAction(UIAlertAction(
+                title: "\(item.quantity)x \(item.name) - R$ \(String(format: "%.2f", item.price))",
+                style: .default
+            ) { [weak self] _ in
+                self?.showEditItemDialog(order: order, itemIndex: index, item: item)
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        // Para iPad
+        if let popover = alert.popoverPresentationController {
+            if let cell = ordersTableView.cellForRow(at: IndexPath(row: filteredOrders.firstIndex(where: { $0.id == order.id }) ?? 0, section: 0)) {
+                popover.sourceView = cell
+                popover.sourceRect = cell.bounds
+            }
+        }
         
         present(alert, animated: true)
     }
     
+    private func showEditItemDialog(order: Order, itemIndex: Int, item: OrderItem) {
+        let alert = UIAlertController(
+            title: "Editar Item",
+            message: "\(item.name)",
+            preferredStyle: .alert
+        )
+        
+        // Campo de quantidade
+        alert.addTextField { textField in
+            textField.placeholder = "Quantidade"
+            textField.keyboardType = .numberPad
+            textField.text = "\(item.quantity)"
+        }
+        
+        alert.addAction(UIAlertAction(title: "Salvar", style: .default) { [weak self] _ in
+            guard let self = self,
+                  let quantityText = alert.textFields?.first?.text,
+                  let quantity = Int(quantityText),
+                  quantity > 0 else {
+                self?.showAlert(title: "Erro", message: "Quantidade inválida.")
+                return
+            }
+            
+            self.updateOrderItem(order: order, itemIndex: itemIndex, newQuantity: quantity)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Remover Item", style: .destructive) { [weak self] _ in
+            self?.removeOrderItem(order: order, itemIndex: itemIndex)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func updateOrderItem(order: Order, itemIndex: Int, newQuantity: Int) {
+        logger.info("✏️ OrdersViewController: Atualizando item \(itemIndex) do pedido \(order.id) para quantidade \(newQuantity)")
+        
+        var updatedItems = order.items
+        guard itemIndex < updatedItems.count else {
+            logger.error("❌ OrdersViewController: Índice de item inválido")
+            showAlert(title: "Erro", message: "Item não encontrado.")
+            return
+        }
+        
+        // Criar nova instância do item com quantidade atualizada (quantity é let)
+        let oldItem = updatedItems[itemIndex]
+        updatedItems[itemIndex] = OrderItem(
+            id: oldItem.id,
+            name: oldItem.name,
+            quantity: newQuantity,
+            price: oldItem.price
+        )
+        
+        progressIndicator.startAnimating()
+        
+        Task {
+            do {
+                try await apiService.updateOrder(orderId: order.id, items: updatedItems)
+                logger.info("✅ OrdersViewController: Pedido atualizado com sucesso")
+                
+                await MainActor.run {
+                    self.progressIndicator.stopAnimating()
+                    self.showAlert(title: "Sucesso", message: "Pedido atualizado com sucesso.")
+                    self.loadOrders()
+                }
+            } catch {
+                logger.error("❌ OrdersViewController: Erro ao atualizar pedido: \(error.localizedDescription)")
+                await MainActor.run {
+                    self.progressIndicator.stopAnimating()
+                    self.showAlert(title: "Erro", message: "Não foi possível atualizar o pedido: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    private func removeOrderItem(order: Order, itemIndex: Int) {
+        logger.info("🗑️ OrdersViewController: Removendo item \(itemIndex) do pedido \(order.id)")
+        
+        var updatedItems = order.items
+        guard itemIndex < updatedItems.count else {
+            logger.error("❌ OrdersViewController: Índice de item inválido")
+            showAlert(title: "Erro", message: "Item não encontrado.")
+            return
+        }
+        
+        updatedItems.remove(at: itemIndex)
+        
+        // Se não sobrou nenhum item, não permitir remover
+        guard !updatedItems.isEmpty else {
+            showAlert(title: "Erro", message: "Não é possível remover todos os itens do pedido.")
+            return
+        }
+        
+        progressIndicator.startAnimating()
+        
+        Task {
+            do {
+                try await apiService.updateOrder(orderId: order.id, items: updatedItems)
+                logger.info("✅ OrdersViewController: Item removido com sucesso")
+                
+                await MainActor.run {
+                    self.progressIndicator.stopAnimating()
+                    self.showAlert(title: "Sucesso", message: "Item removido com sucesso.")
+                    self.loadOrders()
+                }
+            } catch {
+                logger.error("❌ OrdersViewController: Erro ao remover item: \(error.localizedDescription)")
+                await MainActor.run {
+                    self.progressIndicator.stopAnimating()
+                    self.showAlert(title: "Erro", message: "Não foi possível remover o item: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
     private func updateOrderStatus(_ order: Order, status: String) {
+        let logMsg = "📝 OrdersViewController: Atualizando status do pedido \(order.id) para \(status)"
+        logger.info("\(logMsg)")
+        print("\(logMsg)")
         progressIndicator.startAnimating()
         
         Task {
             do {
                 try await apiService.updateOrderStatus(orderId: order.id, status: status)
+                logger.info("✅ OrdersViewController: Status atualizado com sucesso")
                 
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
                     self.loadOrders()
                 }
             } catch {
+                logger.error("❌ OrdersViewController: Erro ao atualizar status: \(error.localizedDescription)")
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
-                    self.showAlert(title: "Erro", message: error.localizedDescription)
+                    let errorMsg = error.localizedDescription.isEmpty ? "Não foi possível atualizar o status do pedido." : error.localizedDescription
+                    self.showAlert(title: "Erro", message: errorMsg)
                 }
             }
         }
@@ -447,7 +638,25 @@ extension OrdersViewController: UITableViewDataSource, UITableViewDelegate {
         } else {
             // Para outros status, mostrar ação rápida de imprimir
             let printAction = UIContextualAction(style: .normal, title: "Imprimir") { [weak self] _, _, completion in
-                self?.printerHelper.printOrder(order)
+                guard let self = self else {
+                    completion(true)
+                    return
+                }
+                self.logger.info("🖨️ OrdersViewController: Impressão via swipe action para pedido #\(order.displayId ?? order.id)")
+                
+                if self.printerHelper.isConnected {
+                    self.printerHelper.printOrder(order) { success, errorMessage in
+                        if !success {
+                            DispatchQueue.main.async {
+                                self.showAlert(title: "Erro", message: errorMessage ?? "Não foi possível imprimir.")
+                            }
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.showAlert(title: "Impressora Não Conectada", message: "Conecte uma impressora Bluetooth nas Configurações.")
+                    }
+                }
                 completion(true)
             }
             printAction.backgroundColor = .systemBlue

@@ -1,6 +1,8 @@
 import UIKit
 
 class LoginViewController: UIViewController {
+    private var scrollView: UIScrollView!
+    private var contentView: UIView!
     private var usernameTextField: UITextField!
     private var passwordTextField: UITextField!
     private var loginButton: UIButton!
@@ -17,6 +19,7 @@ class LoginViewController: UIViewController {
         print("📱 LoginViewController: viewDidLoad chamado")
         
         setupUI()
+        setupKeyboardHandling()
         loadSavedCredentials()
         
         // Se já estiver logado, ir direto para pedidos
@@ -32,6 +35,20 @@ class LoginViewController: UIViewController {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        registerKeyboardNotifications()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        unregisterKeyboardNotifications()
+    }
+    
+    deinit {
+        unregisterKeyboardNotifications()
+    }
+    
     private func loadSavedCredentials() {
         if let credentials = authService.getCredentials() {
             usernameTextField.text = credentials.username
@@ -45,10 +62,21 @@ class LoginViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .pedidosOrangeLight
         
+        // ScrollView para permitir scroll quando o teclado aparecer
+        scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.keyboardDismissMode = .interactive
+        view.addSubview(scrollView)
+        
+        // ContentView dentro do ScrollView
+        contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
         // Logo com efeito glassmorphism
         let logoView = LogoView()
         logoView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(logoView)
+        contentView.addSubview(logoView)
         
         // Title Label
         let titleLabel = UILabel()
@@ -57,7 +85,7 @@ class LoginViewController: UIViewController {
         titleLabel.textColor = .pedidosOrange
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
         
         // Username TextField
         usernameTextField = UITextField()
@@ -66,8 +94,10 @@ class LoginViewController: UIViewController {
         usernameTextField.backgroundColor = .systemBackground
         usernameTextField.autocapitalizationType = .none
         usernameTextField.autocorrectionType = .no
+        usernameTextField.returnKeyType = .next
+        usernameTextField.delegate = self
         usernameTextField.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(usernameTextField)
+        contentView.addSubview(usernameTextField)
         
         // Password TextField
         passwordTextField = UITextField()
@@ -75,8 +105,10 @@ class LoginViewController: UIViewController {
         passwordTextField.borderStyle = .roundedRect
         passwordTextField.backgroundColor = .systemBackground
         passwordTextField.isSecureTextEntry = true
+        passwordTextField.returnKeyType = .go
+        passwordTextField.delegate = self
         passwordTextField.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(passwordTextField)
+        contentView.addSubview(passwordTextField)
         
         // Save Password Switch
         savePasswordLabel = UILabel()
@@ -94,7 +126,7 @@ class LoginViewController: UIViewController {
         savePasswordStack.spacing = 12
         savePasswordStack.alignment = .center
         savePasswordStack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(savePasswordStack)
+        contentView.addSubview(savePasswordStack)
         
         // Login Button
         loginButton = UIButton(type: .system)
@@ -105,51 +137,135 @@ class LoginViewController: UIViewController {
         loginButton.layer.cornerRadius = 8
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         loginButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(loginButton)
+        contentView.addSubview(loginButton)
         
         // Progress Indicator
         progressIndicator = UIActivityIndicatorView(style: .medium)
         progressIndicator.hidesWhenStopped = true
         progressIndicator.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(progressIndicator)
+        contentView.addSubview(progressIndicator)
         
         // Constraints
         NSLayoutConstraint.activate([
-            logoView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
+            // ScrollView
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            // ContentView
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            // Logo
+            logoView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            logoView.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 60),
             logoView.widthAnchor.constraint(equalToConstant: 120),
             logoView.heightAnchor.constraint(equalToConstant: 120),
             
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 40),
-            titleLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -40),
+            // Title
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40),
             titleLabel.topAnchor.constraint(equalTo: logoView.bottomAnchor, constant: 20),
-            titleLabel.bottomAnchor.constraint(equalTo: usernameTextField.topAnchor, constant: -40),
             
-            usernameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            usernameTextField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 40),
-            usernameTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -40),
+            // Username
+            usernameTextField.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            usernameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
+            usernameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40),
             usernameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
             usernameTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            passwordTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            passwordTextField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 40),
-            passwordTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -40),
+            // Password
+            passwordTextField.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            passwordTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
+            passwordTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40),
             passwordTextField.topAnchor.constraint(equalTo: usernameTextField.bottomAnchor, constant: 20),
             passwordTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            savePasswordStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            // Save Password
+            savePasswordStack.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             savePasswordStack.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 16),
             
-            loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loginButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 40),
-            loginButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -40),
+            // Login Button
+            loginButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            loginButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
+            loginButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40),
             loginButton.topAnchor.constraint(equalTo: savePasswordStack.bottomAnchor, constant: 20),
             loginButton.heightAnchor.constraint(equalToConstant: 44),
             
-            progressIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            progressIndicator.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20)
+            // Progress Indicator
+            progressIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            progressIndicator.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
+            progressIndicator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
         ])
+    }
+    
+    private func setupKeyboardHandling() {
+        // Gesture para fechar teclado ao tocar fora
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    private func registerKeyboardNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow(_:)),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide(_:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+    
+    private func unregisterKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let animationDuration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        
+        let keyboardHeight = keyboardFrame.height
+        let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
+        
+        UIView.animate(withDuration: animationDuration) {
+            self.scrollView.contentInset = contentInsets
+            self.scrollView.scrollIndicatorInsets = contentInsets
+            
+            // Scroll para o campo ativo
+            if let activeField = self.usernameTextField.isFirstResponder ? self.usernameTextField :
+                                 self.passwordTextField.isFirstResponder ? self.passwordTextField : nil {
+                let rect = activeField.convert(activeField.bounds, to: self.scrollView)
+                self.scrollView.scrollRectToVisible(rect, animated: false)
+            }
+        }
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let animationDuration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        
+        UIView.animate(withDuration: animationDuration) {
+            self.scrollView.contentInset = .zero
+            self.scrollView.scrollIndicatorInsets = .zero
+        }
     }
     
     @objc private func loginButtonTapped() {
@@ -236,5 +352,18 @@ class LoginViewController: UIViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - UITextFieldDelegate
+extension LoginViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == usernameTextField {
+            passwordTextField.becomeFirstResponder()
+        } else if textField == passwordTextField {
+            textField.resignFirstResponder()
+            loginButtonTapped()
+        }
+        return true
     }
 }
