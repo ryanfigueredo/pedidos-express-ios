@@ -63,7 +63,7 @@ class ApiService {
         let url = "\(baseURL)/api/auth/mobile-login"
         let body = try encoder.encode(["username": username, "password": password])
         
-        guard var request = buildRequest(url: url, method: "POST", body: body) else {
+        guard let request = buildRequest(url: url, method: "POST", body: body) else {
             throw ApiError.invalidURL
         }
         
@@ -76,7 +76,7 @@ class ApiService {
         if httpResponse.statusCode == 404 {
             // Tentar endpoint alternativo
             let altUrl = "\(baseURL)/api/auth/login"
-            guard var altRequest = buildRequest(url: altUrl, method: "POST", body: body) else {
+            guard let altRequest = buildRequest(url: altUrl, method: "POST", body: body) else {
                 throw ApiError.invalidURL
             }
             
@@ -254,13 +254,14 @@ class ApiService {
     
     func createMenuItem(id: String, name: String, price: Double, category: String, available: Bool = true) async throws -> MenuItem {
         let url = "\(baseURL)/api/admin/menu"
-        let body = try encoder.encode([
+        let bodyDict: [String: Any] = [
             "id": id,
             "name": name,
             "price": price,
             "category": category,
             "available": available
-        ])
+        ]
+        let body = try JSONSerialization.data(withJSONObject: bodyDict)
         
         guard let request = buildRequest(url: url, method: "POST", body: body) else {
             throw ApiError.invalidURL
@@ -411,6 +412,29 @@ class ApiService {
         }
         
         return false
+    }
+    
+    func getSubscription() async throws -> Subscription? {
+        let url = "\(baseURL)/api/admin/subscription"
+        
+        guard let request = buildRequest(url: url, method: "GET") else {
+            throw ApiError.invalidURL
+        }
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw ApiError.requestFailed
+        }
+        
+        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let subscriptionData = json["subscription"] as? [String: Any] {
+            let subscriptionJson = try JSONSerialization.data(withJSONObject: subscriptionData)
+            return try decoder.decode(Subscription.self, from: subscriptionJson)
+        }
+        
+        return nil
     }
 }
 

@@ -86,6 +86,11 @@ class OrdersViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         refreshTimer?.invalidate()
+        refreshTimer = nil
+    }
+    
+    deinit {
+        refreshTimer?.invalidate()
     }
     
     private func setupTableView() {
@@ -114,22 +119,40 @@ class OrdersViewController: UIViewController {
     }
     
     private func startAutoRefresh() {
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            self?.loadOrders(silent: true)
+        // Garantir que o timer seja criado no thread principal
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.refreshTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] timer in
+                guard let self = self else {
+                    timer.invalidate()
+                    return
+                }
+                self.loadOrders(silent: true)
+            }
         }
     }
     
     private func loadOrders(silent: Bool = false) {
+        // Garantir que estamos no thread principal para atualizar UI
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in
+                self?.loadOrders(silent: silent)
+            }
+            return
+        }
+        
         if !silent {
             progressIndicator.startAnimating()
         }
         
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
-                let response = try await apiService.getAllOrders(page: 1, limit: 20)
+                let response = try await self.apiService.getAllOrders(page: 1, limit: 20)
                 let sortedOrders = response.orders.sorted { $0.createdAt > $1.createdAt }
                 
-                await MainActor.run {
+                await MainActor.run { [weak self] in
+                    guard let self = self else { return }
                     self.allOrders = sortedOrders
                     self.filterOrders()
                     self.detectAndPrintNewOrders(sortedOrders)
@@ -140,7 +163,8 @@ class OrdersViewController: UIViewController {
                     }
                 }
             } catch {
-                await MainActor.run {
+                await MainActor.run { [weak self] in
+                    guard let self = self else { return }
                     if !silent {
                         self.progressIndicator.stopAnimating()
                         self.refreshControl.endRefreshing()

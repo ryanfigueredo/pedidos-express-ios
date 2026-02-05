@@ -7,22 +7,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
+        print("🚀 AppDelegate: Iniciando aplicação...")
+        
         window = UIWindow(frame: UIScreen.main.bounds)
+        window?.backgroundColor = .systemBackground
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let authService = AuthService()
+        let isLoggedIn = authService.isLoggedIn()
+        print("🔐 Usuário logado: \(isLoggedIn)")
         
-        if authService.isLoggedIn() {
-            if let mainVC = storyboard.instantiateViewController(withIdentifier: "MainNavigationViewController") as? MainNavigationViewController {
-                window?.rootViewController = UINavigationController(rootViewController: mainVC)
-            }
+        if isLoggedIn {
+            let mainVC = MainNavigationViewController()
+            print("✅ MainNavigationViewController criado programaticamente")
+            window?.rootViewController = mainVC
         } else {
-            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController {
-                window?.rootViewController = UINavigationController(rootViewController: loginVC)
-            }
+            let loginVC = LoginViewController()
+            print("✅ LoginViewController criado programaticamente")
+            window?.rootViewController = UINavigationController(rootViewController: loginVC)
         }
         
         window?.makeKeyAndVisible()
+        print("✅ Window configurado e visível")
         
         return true
     }

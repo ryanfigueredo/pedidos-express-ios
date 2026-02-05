@@ -5,7 +5,17 @@ class MainNavigationViewController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupTabBar()
+        print("📱 MainNavigationViewController: viewDidLoad chamado")
+        print("📱 ViewControllers existentes: \(viewControllers?.count ?? 0)")
+        
+        // Verificar se os ViewControllers já foram configurados pelo storyboard
+        // Se não, configurar programaticamente
+        if viewControllers == nil || viewControllers?.isEmpty == true {
+            print("📱 Configurando TabBar programaticamente...")
+            setupTabBar()
+        } else {
+            print("📱 TabBar já configurado pelo storyboard")
+        }
     }
     
     private func setupTabBar() {

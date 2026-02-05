@@ -6,23 +6,31 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = (scene as? UIWindowScene) else { return }
+        guard let windowScene = (scene as? UIWindowScene) else {
+            print("⚠️ SceneDelegate: Não foi possível obter UIWindowScene")
+            return
+        }
+        
+        print("🚀 SceneDelegate: Configurando cena...")
         
         window = UIWindow(windowScene: windowScene)
+        window?.backgroundColor = .systemBackground
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let authService = AuthService()
+        let isLoggedIn = authService.isLoggedIn()
+        print("🔐 Usuário logado: \(isLoggedIn)")
         
-        if authService.isLoggedIn() {
-            if let mainVC = storyboard.instantiateViewController(withIdentifier: "MainNavigationViewController") as? MainNavigationViewController {
-                window?.rootViewController = UINavigationController(rootViewController: mainVC)
-            }
+        if isLoggedIn {
+            let mainVC = MainNavigationViewController()
+            print("✅ MainNavigationViewController criado programaticamente")
+            window?.rootViewController = mainVC
         } else {
-            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController {
-                window?.rootViewController = UINavigationController(rootViewController: loginVC)
-            }
+            let loginVC = LoginViewController()
+            print("✅ LoginViewController criado programaticamente")
+            window?.rootViewController = UINavigationController(rootViewController: loginVC)
         }
         
         window?.makeKeyAndVisible()
+        print("✅ Window configurado e visível")
     }
 }

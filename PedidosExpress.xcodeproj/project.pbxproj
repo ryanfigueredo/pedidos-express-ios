@@ -7,50 +7,52 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A25FAE1F2F34554C0002F12F /* Subscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = A25FAE1E2F34554C0002F12F /* Subscription.swift */; };
 		AA000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002 /* AppDelegate.swift */; };
 		AA000003 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004 /* SceneDelegate.swift */; };
-		AA000005 /* ViewControllers/LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006 /* ViewControllers/LoginViewController.swift */; };
-		AA000007 /* ViewControllers/MainNavigationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000008 /* ViewControllers/MainNavigationViewController.swift */; };
-		AA000009 /* ViewControllers/OrdersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000010 /* ViewControllers/OrdersViewController.swift */; };
-		AA000011 /* ViewControllers/DashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000012 /* ViewControllers/DashboardViewController.swift */; };
-		AA000013 /* ViewControllers/MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000014 /* ViewControllers/MenuViewController.swift */; };
-		AA000015 /* ViewControllers/SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000016 /* ViewControllers/SettingsViewController.swift */; };
-		AA000017 /* ViewControllers/SupportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* ViewControllers/SupportViewController.swift */; };
-		AA000019 /* Views/OrderTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* Views/OrderTableViewCell.swift */; };
-		AA000021 /* Views/MenuItemTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000022 /* Views/MenuItemTableViewCell.swift */; };
-		AA000023 /* Services/ApiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000024 /* Services/ApiService.swift */; };
-		AA000025 /* Services/AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000026 /* Services/AuthService.swift */; };
-		AA000027 /* Services/PrinterHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000028 /* Services/PrinterHelper.swift */; };
-		AA000029 /* Models/User.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000030 /* Models/User.swift */; };
-		AA000031 /* Models/Order.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000032 /* Models/Order.swift */; };
-		AA000033 /* Models/MenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000034 /* Models/MenuItem.swift */; };
-		AA000035 /* Models/Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000036 /* Models/Dashboard.swift */; };
-		AA000037 /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000038 /* Resources/Assets.xcassets */; };
-		AA000039 /* Resources/LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA000040 /* Resources/LaunchScreen.storyboard */; };
+		AA000005 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006 /* LoginViewController.swift */; };
+		AA000007 /* MainNavigationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000008 /* MainNavigationViewController.swift */; };
+		AA000009 /* OrdersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000010 /* OrdersViewController.swift */; };
+		AA000011 /* DashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000012 /* DashboardViewController.swift */; };
+		AA000013 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000014 /* MenuViewController.swift */; };
+		AA000015 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000016 /* SettingsViewController.swift */; };
+		AA000017 /* SupportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* SupportViewController.swift */; };
+		AA000019 /* OrderTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* OrderTableViewCell.swift */; };
+		AA000021 /* MenuItemTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000022 /* MenuItemTableViewCell.swift */; };
+		AA000023 /* ApiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000024 /* ApiService.swift */; };
+		AA000025 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000026 /* AuthService.swift */; };
+		AA000027 /* PrinterHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000028 /* PrinterHelper.swift */; };
+		AA000029 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000030 /* User.swift */; };
+		AA000031 /* Order.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000032 /* Order.swift */; };
+		AA000033 /* MenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000034 /* MenuItem.swift */; };
+		AA000035 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000036 /* Dashboard.swift */; };
+		AA000037 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000038 /* Assets.xcassets */; };
+		AA000039 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA000040 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A25FAE1E2F34554C0002F12F /* Subscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subscription.swift; sourceTree = "<group>"; };
 		AA000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA000004 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		AA000006 /* ViewControllers/LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/LoginViewController.swift; sourceTree = "<group>"; };
-		AA000008 /* ViewControllers/MainNavigationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/MainNavigationViewController.swift; sourceTree = "<group>"; };
-		AA000010 /* ViewControllers/OrdersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/OrdersViewController.swift; sourceTree = "<group>"; };
-		AA000012 /* ViewControllers/DashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/DashboardViewController.swift; sourceTree = "<group>"; };
-		AA000014 /* ViewControllers/MenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/MenuViewController.swift; sourceTree = "<group>"; };
-		AA000016 /* ViewControllers/SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/SettingsViewController.swift; sourceTree = "<group>"; };
-		AA000018 /* ViewControllers/SupportViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllers/SupportViewController.swift; sourceTree = "<group>"; };
-		AA000020 /* Views/OrderTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/OrderTableViewCell.swift; sourceTree = "<group>"; };
-		AA000022 /* Views/MenuItemTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/MenuItemTableViewCell.swift; sourceTree = "<group>"; };
-		AA000024 /* Services/ApiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ApiService.swift; sourceTree = "<group>"; };
-		AA000026 /* Services/AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
-		AA000028 /* Services/PrinterHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/PrinterHelper.swift; sourceTree = "<group>"; };
-		AA000030 /* Models/User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/User.swift; sourceTree = "<group>"; };
-		AA000032 /* Models/Order.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Order.swift; sourceTree = "<group>"; };
-		AA000034 /* Models/MenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/MenuItem.swift; sourceTree = "<group>"; };
-		AA000036 /* Models/Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Dashboard.swift; sourceTree = "<group>"; };
-		AA000038 /* Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AA000040 /* Resources/LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		AA000042 /* Resources/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA000006 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		AA000008 /* MainNavigationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNavigationViewController.swift; sourceTree = "<group>"; };
+		AA000010 /* OrdersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersViewController.swift; sourceTree = "<group>"; };
+		AA000012 /* DashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewController.swift; sourceTree = "<group>"; };
+		AA000014 /* MenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
+		AA000016 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		AA000018 /* SupportViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportViewController.swift; sourceTree = "<group>"; };
+		AA000020 /* OrderTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderTableViewCell.swift; sourceTree = "<group>"; };
+		AA000022 /* MenuItemTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuItemTableViewCell.swift; sourceTree = "<group>"; };
+		AA000024 /* ApiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiService.swift; sourceTree = "<group>"; };
+		AA000026 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		AA000028 /* PrinterHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrinterHelper.swift; sourceTree = "<group>"; };
+		AA000030 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		AA000032 /* Order.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Order.swift; sourceTree = "<group>"; };
+		AA000034 /* MenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuItem.swift; sourceTree = "<group>"; };
+		AA000036 /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
+		AA000038 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA000040 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		AA000042 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000043 /* PedidosExpress.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PedidosExpress.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -98,10 +100,11 @@
 		AA000048 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				AA000030 /* Models/User.swift */,
-				AA000032 /* Models/Order.swift */,
-				AA000034 /* Models/MenuItem.swift */,
-				AA000036 /* Models/Dashboard.swift */,
+				A25FAE1E2F34554C0002F12F /* Subscription.swift */,
+				AA000030 /* User.swift */,
+				AA000032 /* Order.swift */,
+				AA000034 /* MenuItem.swift */,
+				AA000036 /* Dashboard.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -109,9 +112,9 @@
 		AA000049 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				AA000024 /* Services/ApiService.swift */,
-				AA000026 /* Services/AuthService.swift */,
-				AA000028 /* Services/PrinterHelper.swift */,
+				AA000024 /* ApiService.swift */,
+				AA000026 /* AuthService.swift */,
+				AA000028 /* PrinterHelper.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -119,13 +122,13 @@
 		AA000050 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				AA000006 /* ViewControllers/LoginViewController.swift */,
-				AA000008 /* ViewControllers/MainNavigationViewController.swift */,
-				AA000010 /* ViewControllers/OrdersViewController.swift */,
-				AA000012 /* ViewControllers/DashboardViewController.swift */,
-				AA000014 /* ViewControllers/MenuViewController.swift */,
-				AA000016 /* ViewControllers/SettingsViewController.swift */,
-				AA000018 /* ViewControllers/SupportViewController.swift */,
+				AA000006 /* LoginViewController.swift */,
+				AA000008 /* MainNavigationViewController.swift */,
+				AA000010 /* OrdersViewController.swift */,
+				AA000012 /* DashboardViewController.swift */,
+				AA000014 /* MenuViewController.swift */,
+				AA000016 /* SettingsViewController.swift */,
+				AA000018 /* SupportViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -133,8 +136,8 @@
 		AA000051 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				AA000020 /* Views/OrderTableViewCell.swift */,
-				AA000022 /* Views/MenuItemTableViewCell.swift */,
+				AA000020 /* OrderTableViewCell.swift */,
+				AA000022 /* MenuItemTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -142,9 +145,9 @@
 		AA000052 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				AA000038 /* Resources/Assets.xcassets */,
-				AA000040 /* Resources/LaunchScreen.storyboard */,
-				AA000042 /* Resources/Info.plist */,
+				AA000038 /* Assets.xcassets */,
+				AA000040 /* LaunchScreen.storyboard */,
+				AA000042 /* Info.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -202,8 +205,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000037 /* Resources/Assets.xcassets in Resources */,
-				AA000039 /* Resources/LaunchScreen.storyboard in Resources */,
+				AA000037 /* Assets.xcassets in Resources */,
+				AA000039 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,22 +219,23 @@
 			files = (
 				AA000001 /* AppDelegate.swift in Sources */,
 				AA000003 /* SceneDelegate.swift in Sources */,
-				AA000005 /* ViewControllers/LoginViewController.swift in Sources */,
-				AA000007 /* ViewControllers/MainNavigationViewController.swift in Sources */,
-				AA000009 /* ViewControllers/OrdersViewController.swift in Sources */,
-				AA000011 /* ViewControllers/DashboardViewController.swift in Sources */,
-				AA000013 /* ViewControllers/MenuViewController.swift in Sources */,
-				AA000015 /* ViewControllers/SettingsViewController.swift in Sources */,
-				AA000017 /* ViewControllers/SupportViewController.swift in Sources */,
-				AA000019 /* Views/OrderTableViewCell.swift in Sources */,
-				AA000021 /* Views/MenuItemTableViewCell.swift in Sources */,
-				AA000023 /* Services/ApiService.swift in Sources */,
-				AA000025 /* Services/AuthService.swift in Sources */,
-				AA000027 /* Services/PrinterHelper.swift in Sources */,
-				AA000029 /* Models/User.swift in Sources */,
-				AA000031 /* Models/Order.swift in Sources */,
-				AA000033 /* Models/MenuItem.swift in Sources */,
-				AA000035 /* Models/Dashboard.swift in Sources */,
+				AA000005 /* LoginViewController.swift in Sources */,
+				AA000007 /* MainNavigationViewController.swift in Sources */,
+				A25FAE1F2F34554C0002F12F /* Subscription.swift in Sources */,
+				AA000009 /* OrdersViewController.swift in Sources */,
+				AA000011 /* DashboardViewController.swift in Sources */,
+				AA000013 /* MenuViewController.swift in Sources */,
+				AA000015 /* SettingsViewController.swift in Sources */,
+				AA000017 /* SupportViewController.swift in Sources */,
+				AA000019 /* OrderTableViewCell.swift in Sources */,
+				AA000021 /* MenuItemTableViewCell.swift in Sources */,
+				AA000023 /* ApiService.swift in Sources */,
+				AA000025 /* AuthService.swift in Sources */,
+				AA000027 /* PrinterHelper.swift in Sources */,
+				AA000029 /* User.swift in Sources */,
+				AA000031 /* Order.swift in Sources */,
+				AA000033 /* MenuItem.swift in Sources */,
+				AA000035 /* Dashboard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -277,8 +281,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -341,8 +345,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -375,8 +379,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -408,8 +412,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
