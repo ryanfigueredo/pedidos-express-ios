@@ -409,10 +409,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pedidos Express";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -425,7 +426,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pedidosexpress;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -442,10 +443,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PedidosExpress/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pedidos Express";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Este app precisa de acesso Bluetooth para conectar com impressoras térmicas e imprimir pedidos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -458,7 +460,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pedidosexpress;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

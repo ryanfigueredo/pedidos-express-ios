@@ -147,22 +147,44 @@ class MenuViewController: UIViewController {
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
                     
-                    // Mensagem mais amigável
+                    // Mensagem mais amigável baseada no tipo de erro
                     var errorMessage = "Erro ao carregar cardápio."
-                    if let urlError = error as? URLError {
+                    var errorTitle = "Erro"
+                    
+                    if let apiError = error as? ApiError {
+                        switch apiError {
+                        case .unauthorized:
+                            errorTitle = "Sessão Expirada"
+                            errorMessage = "Sua sessão expirou. Faça login novamente."
+                        case .loginFailed:
+                            errorTitle = "Erro de Login"
+                            errorMessage = apiError.localizedDescription ?? "Usuário ou senha incorretos."
+                        case .networkError(let message):
+                            errorTitle = "Erro de Conexão"
+                            errorMessage = message
+                        case .requestFailed:
+                            errorTitle = "Erro de Conexão"
+                            errorMessage = "Erro ao conectar com o servidor. Verifique sua conexão com a internet."
+                        default:
+                            errorMessage = apiError.localizedDescription ?? "Erro desconhecido."
+                        }
+                    } else if let urlError = error as? URLError {
+                        errorTitle = "Erro de Conexão"
                         switch urlError.code {
                         case .notConnectedToInternet, .networkConnectionLost:
                             errorMessage = "Sem conexão com a internet. Verifique sua conexão."
                         case .timedOut:
                             errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                        case .cannotConnectToHost:
+                            errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão."
                         default:
                             errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
                         }
                     } else {
-                        errorMessage = "Erro: \(error.localizedDescription)"
+                        errorMessage = error.localizedDescription.isEmpty ? "Erro desconhecido ao carregar cardápio." : error.localizedDescription
                     }
                     
-                    self.showAlert(title: "Erro", message: errorMessage)
+                    self.showAlert(title: errorTitle, message: errorMessage)
                 }
             }
         }

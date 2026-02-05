@@ -6,6 +6,7 @@ class PrinterHelper: NSObject, ObservableObject {
     private var centralManager: CBCentralManager?
     var connectedPeripheral: CBPeripheral?
     private var printerCharacteristic: CBCharacteristic?
+    private var pendingPrintCompletion: ((Bool, String?) -> Void)?
     
     @Published var isConnected = false
     @Published var availablePrinters: [CBPeripheral] = []
@@ -17,6 +18,9 @@ class PrinterHelper: NSObject, ObservableObject {
     // UUID alternativo usado por algumas impressoras
     private let printerServiceUUIDAlt = CBUUID(string: "0000ff00-0000-1000-8000-00805f9b34fb")
     private let printerCharacteristicUUID = CBUUID(string: "0000ff02-0000-1000-8000-00805f9b34fb")
+    // UUIDs padrão de características SPP (usados como fallback)
+    private let sppCharacteristicUUID1 = CBUUID(string: "0000fff1-0000-1000-8000-00805f9b34fb")
+    private let sppCharacteristicUUID2 = CBUUID(string: "0000fff2-0000-1000-8000-00805f9b34fb")
     
     private let logger = Logger(subsystem: "com.pedidosexpress", category: "PrinterHelper")
     
@@ -132,30 +136,140 @@ class PrinterHelper: NSObject, ObservableObject {
     
     func printFormattedText(_ text: String, completion: ((Bool, String?) -> Void)? = nil) {
         logger.info("🖨️ PrinterHelper: Tentando imprimir texto...")
+        print("🖨️ PrinterHelper: Tentando imprimir texto...")
         
-        guard isConnected else {
-            let errorMsg = "Impressora não conectada. Conecte uma impressora primeiro."
+        // Verificar estado detalhado
+        let stateMsg = "📊 PrinterHelper: Estado - isConnected: \(isConnected), peripheral: \(connectedPeripheral?.name ?? "nil"), characteristic: \(printerCharacteristic != nil ? "sim" : "nil")"
+        logger.info("\(stateMsg)")
+        print("\(stateMsg)")
+        
+        // Verificar se temos periférico conectado (mais confiável que isConnected)
+        guard let peripheral = connectedPeripheral else {
+            let errorMsg = "Periférico não conectado. Conecte uma impressora primeiro."
             logger.error("❌ PrinterHelper: \(errorMsg)")
+            print("❌ PrinterHelper: \(errorMsg)")
+            // Atualizar estado se necessário
+            if isConnected {
+                isConnected = false
+            }
             completion?(false, errorMsg)
             return
         }
         
+        // Se temos periférico mas isConnected está false, atualizar estado
+        if !isConnected && peripheral.state == .connected {
+            logger.warning("⚠️ PrinterHelper: Periférico conectado mas isConnected está false. Atualizando estado...")
+            print("⚠️ PrinterHelper: Periférico conectado mas isConnected está false. Atualizando estado...")
+            isConnected = true
+        }
+        
+        // Verificar se o periférico está realmente conectado
+        guard peripheral.state == .connected else {
+            let errorMsg = "Periférico não está conectado (estado: \(peripheral.state.rawValue))."
+            logger.error("❌ PrinterHelper: \(errorMsg)")
+            print("❌ PrinterHelper: \(errorMsg)")
+            isConnected = false
+            completion?(false, errorMsg)
+            return
+        }
+        
+        // Se não temos característica específica, tentar encontrar uma disponível
+        if printerCharacteristic == nil {
+            logger.warning("⚠️ PrinterHelper: Característica não definida. Procurando características disponíveis...")
+            print("⚠️ PrinterHelper: Característica não definida. Procurando características disponíveis...")
+            
+            // Tentar encontrar qualquer característica disponível nos serviços já descobertos
+            if let services = peripheral.services {
+                for service in services {
+                    if (service.uuid == printerServiceUUID || service.uuid == printerServiceUUIDAlt),
+                       let characteristics = service.characteristics, !characteristics.isEmpty {
+                        // Usar a primeira característica que permite escrita
+                        for char in characteristics {
+                            if char.properties.contains(.write) || char.properties.contains(.writeWithoutResponse) {
+                                printerCharacteristic = char
+                                logger.info("✅ PrinterHelper: Característica encontrada: \(char.uuid)")
+                                print("✅ PrinterHelper: Característica encontrada: \(char.uuid)")
+                                break
+                            }
+                        }
+                        // Se não encontrou uma com escrita, usar a primeira disponível
+                        if printerCharacteristic == nil, let firstChar = characteristics.first {
+                            printerCharacteristic = firstChar
+                            logger.info("✅ PrinterHelper: Usando primeira característica disponível: \(firstChar.uuid)")
+                            print("✅ PrinterHelper: Usando primeira característica disponível: \(firstChar.uuid)")
+                        }
+                        if printerCharacteristic != nil {
+                            break
+                        }
+                    }
+                }
+            }
+            
+            // Se ainda não encontrou, tentar descobrir características novamente
+            if printerCharacteristic == nil {
+                logger.warning("⚠️ PrinterHelper: Nenhuma característica encontrada. Tentando descobrir novamente...")
+                print("⚠️ PrinterHelper: Nenhuma característica encontrada. Tentando descobrir novamente...")
+                
+                if let services = peripheral.services {
+                    for service in services {
+                        if service.uuid == printerServiceUUID || service.uuid == printerServiceUUIDAlt {
+                            if service.uuid == printerServiceUUID {
+                                peripheral.discoverCharacteristics(nil, for: service)
+                            } else {
+                                peripheral.discoverCharacteristics([printerCharacteristicUUID, sppCharacteristicUUID1, sppCharacteristicUUID2], for: service)
+                            }
+                        }
+                    }
+                }
+                
+                // Aguardar um pouco para descobrir características
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                    guard let self = self else { return }
+                    // Tentar novamente após descobrir
+                    self.attemptPrint(text: text, completion: completion)
+                }
+                return
+            }
+        }
+        
+        attemptPrint(text: text, completion: completion)
+    }
+    
+    private func attemptPrint(text: String, completion: ((Bool, String?) -> Void)?) {
         guard let characteristic = printerCharacteristic else {
             let errorMsg = "Característica da impressora não encontrada. Tente reconectar."
             logger.error("❌ PrinterHelper: \(errorMsg)")
+            print("❌ PrinterHelper: \(errorMsg)")
             completion?(false, errorMsg)
             return
         }
         
         logger.info("✅ PrinterHelper: Impressora conectada e pronta. Enviando dados...")
+        print("✅ PrinterHelper: Impressora conectada e pronta. Enviando dados...")
         
         // Converter texto para comandos ESC/POS
         let escPosData = convertToEscPos(text)
         logger.info("📄 PrinterHelper: Dados convertidos. Tamanho: \(escPosData.count) bytes")
+        print("📄 PrinterHelper: Dados convertidos. Tamanho: \(escPosData.count) bytes")
         
+        // Armazenar completion para chamar no callback de escrita
+        pendingPrintCompletion = completion
+        
+        // Enviar dados para impressora
         connectedPeripheral?.writeValue(escPosData, for: characteristic, type: .withResponse)
-        logger.info("✅ PrinterHelper: Dados enviados para impressora")
-        completion?(true, nil)
+        logger.info("📤 PrinterHelper: Dados enviados para impressora (aguardando confirmação...)")
+        print("📤 PrinterHelper: Dados enviados para impressora (aguardando confirmação...)")
+        
+        // Para writeWithoutResponse, chamar completion imediatamente
+        // Para withResponse, aguardar callback
+        if !characteristic.properties.contains(.write) && characteristic.properties.contains(.writeWithoutResponse) {
+            // Se só tem writeWithoutResponse, chamar completion após um pequeno delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.pendingPrintCompletion?(true, nil)
+                self?.pendingPrintCompletion = nil
+            }
+        }
+        // Se tem write, o completion será chamado no callback didWriteValueFor
     }
     
     func printOrder(_ order: Order, completion: ((Bool, String?) -> Void)? = nil) {
@@ -350,6 +464,11 @@ extension PrinterHelper: CBCentralManagerDelegate {
         logger.info("\(msg)")
         print("\(msg)")
         isConnected = true
+        connectedPeripheral = peripheral
+        connectedPeripheral?.delegate = self
+        let stateMsg = "📊 PrinterHelper: Estado atualizado - isConnected = \(isConnected), peripheral: \(peripheral.name ?? "nil")"
+        logger.info("\(stateMsg)")
+        print("\(stateMsg)")
         // Descobrir ambos os serviços (SPP padrão e alternativo)
         peripheral.discoverServices([printerServiceUUID, printerServiceUUIDAlt])
     }
@@ -385,11 +504,16 @@ extension PrinterHelper: CBPeripheralDelegate {
         }
         
         logger.info("✅ PrinterHelper: \(services.count) serviço(s) encontrado(s)")
+        print("✅ PrinterHelper: \(services.count) serviço(s) encontrado(s)")
         for service in services {
-            logger.info("   - Serviço: \(service.uuid)")
+            let serviceMsg = "   - Serviço: \(service.uuid)"
+            logger.info("\(serviceMsg)")
+            print("\(serviceMsg)")
             // Verificar tanto o UUID SPP padrão quanto o alternativo
             if service.uuid == printerServiceUUID || service.uuid == printerServiceUUIDAlt {
-                logger.info("✅ PrinterHelper: Serviço de impressora encontrado! Buscando características...")
+                let foundMsg = "✅ PrinterHelper: Serviço de impressora encontrado! Buscando características..."
+                logger.info("\(foundMsg)")
+                print("\(foundMsg)")
                 // Para SPP padrão, pode não ter características específicas, usar todas disponíveis
                 if service.uuid == printerServiceUUID {
                     // SPP padrão - descobrir todas as características
@@ -411,61 +535,154 @@ extension PrinterHelper: CBPeripheralDelegate {
         // Para SPP padrão (printerServiceUUID), pode não ter características específicas
         // Nesse caso, podemos usar o serviço diretamente
         if service.uuid == printerServiceUUID {
-            if let characteristics = service.characteristics, !characteristics.isEmpty {
+            guard let characteristics = service.characteristics else {
+                logger.warning("⚠️ PrinterHelper: Nenhuma característica encontrada para SPP padrão")
+                print("⚠️ PrinterHelper: Nenhuma característica encontrada para SPP padrão")
+                return
+            }
+            
+            if !characteristics.isEmpty {
                 logger.info("✅ PrinterHelper: SPP padrão - \(characteristics.count) característica(s) encontrada(s)")
+                print("✅ PrinterHelper: SPP padrão - \(characteristics.count) característica(s) encontrada(s)")
                 // Usar a primeira característica disponível ou a que permite escrita
                 for characteristic in characteristics {
-                    logger.info("   - Característica: \(characteristic.uuid)")
-                    if characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) {
-                        logger.info("✅ PrinterHelper: Característica de escrita encontrada! Impressora pronta.")
+                    let charMsg = "   - Característica: \(characteristic.uuid)"
+                    logger.info("\(charMsg)")
+                    print("\(charMsg)")
+                    // Verificar se é uma característica padrão do SPP ou permite escrita
+                    if characteristic.uuid == sppCharacteristicUUID1 || 
+                       characteristic.uuid == sppCharacteristicUUID2 ||
+                       characteristic.properties.contains(.write) || 
+                       characteristic.properties.contains(.writeWithoutResponse) {
+                        let readyMsg = "✅ PrinterHelper: Característica de escrita encontrada! Impressora pronta."
+                        logger.info("\(readyMsg)")
+                        print("\(readyMsg)")
                         printerCharacteristic = characteristic
+                        // Garantir que isConnected está true
+                        if !isConnected {
+                            isConnected = true
+                            logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                            print("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                        }
                         break
                     }
                 }
-                // Se não encontrou uma com escrita, usar a primeira
+                // Se não encontrou uma com escrita ou padrão do SPP, usar a primeira
                 if printerCharacteristic == nil, let firstChar = characteristics.first {
-                    logger.info("   Usando primeira característica disponível: \(firstChar.uuid)")
+                    let fallbackMsg = "   Usando primeira característica disponível: \(firstChar.uuid)"
+                    logger.info("\(fallbackMsg)")
+                    print("\(fallbackMsg)")
                     printerCharacteristic = firstChar
+                    // Garantir que isConnected está true
+                    if !isConnected {
+                        isConnected = true
+                        logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                        print("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                    }
+                } else if printerCharacteristic != nil {
+                    // Garantir que isConnected está true quando temos característica
+                    if !isConnected {
+                        isConnected = true
+                        logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                        print("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                    }
                 }
             } else {
-                // SPP padrão sem características - isso é normal, vamos tentar usar o serviço diretamente
-                logger.info("✅ PrinterHelper: SPP padrão sem características específicas (normal para SPP)")
-                // Vamos marcar como pronto mesmo sem característica específica
-                // A escrita será feita diretamente no serviço
+                // SPP padrão sem características - isso pode acontecer
+                // Vamos tentar descobrir características padrão do SPP
+                logger.info("✅ PrinterHelper: SPP padrão sem características específicas. Tentando descobrir características padrão do SPP...")
+                print("✅ PrinterHelper: SPP padrão sem características específicas. Tentando descobrir características padrão do SPP...")
+                // Tentar descobrir características padrão do SPP
+                peripheral.discoverCharacteristics([sppCharacteristicUUID1, sppCharacteristicUUID2], for: service)
+                // O callback didDiscoverCharacteristicsFor será chamado novamente quando encontrar
+                // Por enquanto, marcar como conectado se ainda não estiver
+                if !isConnected {
+                    isConnected = true
+                    logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado (aguardando características)")
+                    print("✅ PrinterHelper: Estado de conexão atualizado para conectado (aguardando características)")
+                }
             }
-            return
+            return // Retornar aqui para não processar novamente abaixo
         }
         
         // Para UUID alternativo, usar a lógica original
         guard let characteristics = service.characteristics else {
             logger.warning("⚠️ PrinterHelper: Nenhuma característica encontrada")
+            print("⚠️ PrinterHelper: Nenhuma característica encontrada")
             return
         }
         
         logger.info("✅ PrinterHelper: \(characteristics.count) característica(s) encontrada(s)")
+        print("✅ PrinterHelper: \(characteristics.count) característica(s) encontrada(s)")
         for characteristic in characteristics {
-            logger.info("   - Característica: \(characteristic.uuid)")
-            if characteristic.uuid == printerCharacteristicUUID {
-                logger.info("✅ PrinterHelper: Característica de impressão encontrada! Impressora pronta.")
+            let charMsg = "   - Característica: \(characteristic.uuid)"
+            logger.info("\(charMsg)")
+            print("\(charMsg)")
+            // Verificar UUID específico OU características padrão do SPP
+            if characteristic.uuid == printerCharacteristicUUID || 
+               characteristic.uuid == sppCharacteristicUUID1 || 
+               characteristic.uuid == sppCharacteristicUUID2 {
+                let readyMsg = "✅ PrinterHelper: Característica de impressão encontrada! Impressora pronta."
+                logger.info("\(readyMsg)")
+                print("\(readyMsg)")
                 printerCharacteristic = characteristic
+                // Garantir que isConnected está true
+                if !isConnected {
+                    isConnected = true
+                    logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                    print("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                }
                 break
             }
         }
         
         if printerCharacteristic == nil {
             logger.warning("⚠️ PrinterHelper: Característica de impressão não encontrada. Tentando usar primeira característica disponível...")
-            if let firstChar = characteristics.first {
-                logger.info("   Usando: \(firstChar.uuid)")
+            print("⚠️ PrinterHelper: Característica de impressão não encontrada. Tentando usar primeira característica disponível...")
+            // Tentar encontrar uma característica que permite escrita
+            for characteristic in characteristics {
+                if characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) {
+                    let usingMsg = "   Usando característica com escrita: \(characteristic.uuid)"
+                    logger.info("\(usingMsg)")
+                    print("\(usingMsg)")
+                    printerCharacteristic = characteristic
+                    // Garantir que isConnected está true
+                    if !isConnected {
+                        isConnected = true
+                        logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                        print("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                    }
+                    break
+                }
+            }
+            // Se ainda não encontrou, usar a primeira disponível
+            if printerCharacteristic == nil, let firstChar = characteristics.first {
+                let usingMsg = "   Usando primeira característica disponível: \(firstChar.uuid)"
+                logger.info("\(usingMsg)")
+                print("\(usingMsg)")
                 printerCharacteristic = firstChar
+                // Garantir que isConnected está true
+                if !isConnected {
+                    isConnected = true
+                    logger.info("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                    print("✅ PrinterHelper: Estado de conexão atualizado para conectado")
+                }
             }
         }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
-            logger.error("❌ PrinterHelper: Erro ao escrever dados: \(error.localizedDescription)")
+            let errorMsg = "Erro ao escrever dados na impressora: \(error.localizedDescription)"
+            logger.error("❌ PrinterHelper: \(errorMsg)")
+            print("❌ PrinterHelper: \(errorMsg)")
+            pendingPrintCompletion?(false, errorMsg)
         } else {
-            logger.info("✅ PrinterHelper: Dados escritos com sucesso na impressora")
+            let successMsg = "✅ PrinterHelper: Dados escritos com sucesso na impressora"
+            logger.info("\(successMsg)")
+            print("\(successMsg)")
+            pendingPrintCompletion?(true, nil)
         }
+        pendingPrintCompletion = nil
     }
 }

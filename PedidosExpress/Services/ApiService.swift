@@ -223,14 +223,20 @@ class ApiService {
         }
         #endif
         
-        // O backend sempre retorna 200, mesmo em caso de erro (retorna array vazio)
+        // Verificar status HTTP
         guard httpResponse.statusCode == 200 else {
             if httpResponse.statusCode == 401 {
-                print("❌ ApiService.getAllOrders: Não autorizado (401) - verifique credenciais")
+                let errorMsg = "❌ ApiService.getAllOrders: Não autorizado (401) - sessão expirada"
+                print("\(errorMsg)")
+                // Lançar erro de não autorizado para que o UI possa tratar adequadamente
+                throw ApiError.unauthorized
+            } else {
+                let errorMsg = "❌ ApiService.getAllOrders: Erro HTTP \(httpResponse.statusCode)"
+                print("\(errorMsg)")
+                // Retornar vazio em vez de erro para outros códigos (compatibilidade)
+                let pagination = Pagination(page: page, limit: limit, total: 0, hasMore: false)
+                return OrdersResponse(orders: [], pagination: pagination)
             }
-            // Retornar vazio em vez de erro
-            let pagination = Pagination(page: page, limit: limit, total: 0, hasMore: false)
-            return OrdersResponse(orders: [], pagination: pagination)
         }
         
         // Tentar decodificar diretamente primeiro
@@ -409,19 +415,16 @@ class ApiService {
             
             guard httpResponse.statusCode == 200 else {
                 if httpResponse.statusCode == 401 {
-                    #if DEBUG
-                    print("❌ ApiService.updateOrderStatus: Não autorizado (401)")
-                    #endif
-                    throw ApiError.loginFailed
+                    let errorMsg = "❌ ApiService.updateOrderStatus: Não autorizado (401) - sessão expirada"
+                    print("\(errorMsg)")
+                    throw ApiError.unauthorized
                 } else if httpResponse.statusCode == 404 {
-                    #if DEBUG
-                    print("❌ ApiService.updateOrderStatus: Pedido não encontrado (404)")
-                    #endif
+                    let errorMsg = "❌ ApiService.updateOrderStatus: Pedido não encontrado (404)"
+                    print("\(errorMsg)")
                     throw ApiError.requestFailed
                 } else {
-                    #if DEBUG
-                    print("❌ ApiService.updateOrderStatus: Erro HTTP \(httpResponse.statusCode)")
-                    #endif
+                    let errorMsg = "❌ ApiService.updateOrderStatus: Erro HTTP \(httpResponse.statusCode)"
+                    print("\(errorMsg)")
                     throw ApiError.requestFailed
                 }
             }
@@ -493,10 +496,9 @@ class ApiService {
             
             guard httpResponse.statusCode == 200 else {
                 if httpResponse.statusCode == 401 {
-                    #if DEBUG
-                    print("❌ ApiService.updateOrder: Não autorizado (401)")
-                    #endif
-                    throw ApiError.loginFailed
+                    let errorMsg = "❌ ApiService.updateOrder: Não autorizado (401) - sessão expirada"
+                    print("\(errorMsg)")
+                    throw ApiError.unauthorized
                 } else if httpResponse.statusCode == 404 {
                     #if DEBUG
                     print("❌ ApiService.updateOrder: Pedido não encontrado (404)")
@@ -581,9 +583,14 @@ class ApiService {
             
             guard httpResponse.statusCode == 200 else {
                 if httpResponse.statusCode == 401 {
-                    print("❌ ApiService.getStats: Não autorizado (401) - verifique credenciais")
+                    let errorMsg = "❌ ApiService.getStats: Não autorizado (401) - sessão expirada"
+                    print("\(errorMsg)")
+                    throw ApiError.unauthorized
+                } else {
+                    let errorMsg = "❌ ApiService.getStats: Erro HTTP \(httpResponse.statusCode)"
+                    print("\(errorMsg)")
+                    throw ApiError.requestFailed
                 }
-                throw ApiError.requestFailed
             }
             
             // Tentar decodificar diretamente primeiro
@@ -618,20 +625,15 @@ class ApiService {
             }
             
             // Se não tem "success", tentar decodificar diretamente como stats
-            if let statsData = json as? [String: Any] {
-                #if DEBUG
-                print("📊 ApiService.getStats: Tentando decodificar JSON diretamente como stats")
-                #endif
-                let statsJson = try JSONSerialization.data(withJSONObject: statsData)
-                let decodedStats = try decoder.decode(DashboardStats.self, from: statsJson)
-                #if DEBUG
-                print("📊 ApiService.getStats: Stats decodificados diretamente - today.revenue=\(decodedStats.today.revenue), week.revenue=\(decodedStats.week.revenue)")
-                #endif
-                return decodedStats
-            }
-            
-            print("❌ ApiService.getStats: Formato de resposta inesperado")
-            throw ApiError.requestFailed
+            #if DEBUG
+            print("📊 ApiService.getStats: Tentando decodificar JSON diretamente como stats")
+            #endif
+            let statsJson = try JSONSerialization.data(withJSONObject: json)
+            let decodedStats = try decoder.decode(DashboardStats.self, from: statsJson)
+            #if DEBUG
+            print("📊 ApiService.getStats: Stats decodificados diretamente - today.revenue=\(decodedStats.today.revenue), week.revenue=\(decodedStats.week.revenue)")
+            #endif
+            return decodedStats
         } catch let urlError as URLError {
             print("❌ ApiService.getStats: Erro de rede - \(urlError.localizedDescription)")
             throw ApiError.requestFailed
@@ -675,13 +677,16 @@ class ApiService {
         }
         #endif
         
-        // O backend sempre retorna 200, mesmo em caso de erro (retorna array vazio)
+        // Verificar status HTTP
         guard httpResponse.statusCode == 200 else {
             if httpResponse.statusCode == 401 {
-                print("❌ ApiService.getMenu: Não autorizado (401) - verifique credenciais")
+                let errorMsg = "❌ ApiService.getMenu: Não autorizado (401) - sessão expirada"
+                print("\(errorMsg)")
+                throw ApiError.unauthorized
+            } else {
+                // Retornar vazio em vez de erro para outros códigos (compatibilidade)
+                return []
             }
-            // Retornar vazio em vez de erro
-            return []
         }
         
         // Tentar decodificar diretamente primeiro (se items vier como array direto)
@@ -862,10 +867,12 @@ class ApiService {
             }
             #endif
             
-            // Se não houver dados ou status diferente de 200, retornar array vazio
+            // Verificar status HTTP
             guard httpResponse.statusCode == 200 else {
                 if httpResponse.statusCode == 401 {
-                    print("❌ ApiService.getPriorityConversations: Não autorizado (401)")
+                    let errorMsg = "❌ ApiService.getPriorityConversations: Não autorizado (401) - sessão expirada"
+                    print("\(errorMsg)")
+                    throw ApiError.unauthorized
                 } else if httpResponse.statusCode == 404 {
                     print("⚠️ ApiService.getPriorityConversations: Endpoint não encontrado (404)")
                 }
@@ -1078,7 +1085,9 @@ enum ApiError: LocalizedError {
     case invalidURL
     case invalidResponse
     case loginFailed
+    case unauthorized
     case requestFailed
+    case networkError(String)
     
     var errorDescription: String? {
         switch self {
@@ -1088,8 +1097,12 @@ enum ApiError: LocalizedError {
             return "Resposta inválida do servidor."
         case .loginFailed:
             return "Usuário ou senha incorretos."
+        case .unauthorized:
+            return "Sessão expirada. Faça login novamente."
         case .requestFailed:
             return "Erro ao conectar com o servidor. Verifique sua conexão."
+        case .networkError(let message):
+            return message
         }
     }
 }

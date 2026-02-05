@@ -206,22 +206,50 @@ class OrdersViewController: UIViewController {
                         self.progressIndicator.stopAnimating()
                         self.refreshControl.endRefreshing()
                         
-                        // Mensagem mais amigável
+                        // Mensagem mais amigável baseada no tipo de erro
                         var errorMessage = "Erro ao carregar pedidos."
-                        if let urlError = error as? URLError {
+                        var errorTitle = "Erro"
+                        
+                        if let apiError = error as? ApiError {
+                            switch apiError {
+                            case .unauthorized:
+                                errorTitle = "Sessão Expirada"
+                                errorMessage = "Sua sessão expirou. Faça login novamente."
+                                // Opcional: redirecionar para login
+                                // self.navigationController?.popToRootViewController(animated: true)
+                            case .loginFailed:
+                                errorTitle = "Erro de Login"
+                                errorMessage = apiError.localizedDescription ?? "Usuário ou senha incorretos."
+                            case .networkError(let message):
+                                errorTitle = "Erro de Conexão"
+                                errorMessage = message
+                            case .requestFailed:
+                                errorTitle = "Erro de Conexão"
+                                errorMessage = "Erro ao conectar com o servidor. Verifique sua conexão com a internet."
+                            default:
+                                errorMessage = apiError.localizedDescription ?? "Erro desconhecido."
+                            }
+                        } else if let urlError = error as? URLError {
+                            errorTitle = "Erro de Conexão"
                             switch urlError.code {
                             case .notConnectedToInternet, .networkConnectionLost:
                                 errorMessage = "Sem conexão com a internet. Verifique sua conexão."
                             case .timedOut:
                                 errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                            case .cannotConnectToHost:
+                                errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão."
                             default:
                                 errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
                             }
                         } else {
-                            errorMessage = "Erro: \(error.localizedDescription)"
+                            errorMessage = error.localizedDescription.isEmpty ? "Erro desconhecido ao carregar pedidos." : error.localizedDescription
                         }
                         
-                        self.showAlert(title: "Erro", message: errorMessage)
+                        let logMsg = "❌ OrdersViewController: Erro ao carregar pedidos - \(errorMessage)"
+                        self.logger.error("\(logMsg)")
+                        print("\(logMsg)")
+                        
+                        self.showAlert(title: errorTitle, message: errorMessage)
                     }
                 }
             }
@@ -386,8 +414,18 @@ class OrdersViewController: UIViewController {
         logger.info("\(logMsg)")
         print("\(logMsg)")
         
-        guard printerHelper.isConnected else {
-            let errorMsg = "❌ OrdersViewController: Impressora não conectada"
+        // Log detalhado do estado da impressora
+        let peripheralState = printerHelper.connectedPeripheral?.state.rawValue ?? -1
+        let stateMsg = "📊 OrdersViewController: Estado da impressora - isConnected: \(printerHelper.isConnected), peripheral: \(printerHelper.connectedPeripheral?.name ?? "nil"), state: \(peripheralState)"
+        logger.info("\(stateMsg)")
+        print("\(stateMsg)")
+        
+        // Verificar se temos periférico conectado (mais confiável que apenas isConnected)
+        let hasConnectedPeripheral = printerHelper.connectedPeripheral != nil && 
+                                    printerHelper.connectedPeripheral?.state == .connected
+        
+        guard printerHelper.isConnected || hasConnectedPeripheral else {
+            let errorMsg = "❌ OrdersViewController: Impressora não conectada (isConnected = \(printerHelper.isConnected), hasPeripheral = \(hasConnectedPeripheral))"
             logger.error("\(errorMsg)")
             print("\(errorMsg)")
             showAlert(
@@ -395,6 +433,12 @@ class OrdersViewController: UIViewController {
                 message: "Conecte uma impressora Bluetooth nas Configurações antes de imprimir."
             )
             return
+        }
+        
+        // Se temos periférico conectado mas isConnected está false, atualizar estado
+        if hasConnectedPeripheral && !printerHelper.isConnected {
+            logger.warning("⚠️ OrdersViewController: Periférico conectado mas isConnected está false. Continuando mesmo assim...")
+            print("⚠️ OrdersViewController: Periférico conectado mas isConnected está false. Continuando mesmo assim...")
         }
         
         logger.info("✅ OrdersViewController: Impressora conectada, enviando pedido para impressão...")
@@ -518,9 +562,39 @@ class OrdersViewController: UIViewController {
                 }
             } catch {
                 logger.error("❌ OrdersViewController: Erro ao atualizar pedido: \(error.localizedDescription)")
-                await MainActor.run {
+                await MainActor.run { [weak self] in
+                    guard let self = self else { return }
                     self.progressIndicator.stopAnimating()
-                    self.showAlert(title: "Erro", message: "Não foi possível atualizar o pedido: \(error.localizedDescription)")
+                    
+                    var errorTitle = "Erro"
+                    var errorMessage = "Não foi possível atualizar o pedido."
+                    
+                    if let apiError = error as? ApiError {
+                        switch apiError {
+                        case .unauthorized:
+                            errorTitle = "Sessão Expirada"
+                            errorMessage = "Sua sessão expirou. Faça login novamente."
+                        case .requestFailed:
+                            errorTitle = "Erro de Conexão"
+                            errorMessage = "Erro ao conectar com o servidor. Verifique sua conexão com a internet."
+                        default:
+                            errorMessage = apiError.localizedDescription ?? errorMessage
+                        }
+                    } else if let urlError = error as? URLError {
+                        errorTitle = "Erro de Conexão"
+                        switch urlError.code {
+                        case .notConnectedToInternet, .networkConnectionLost:
+                            errorMessage = "Sem conexão com a internet. Verifique sua conexão."
+                        case .timedOut:
+                            errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                        default:
+                            errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                        }
+                    } else {
+                        errorMessage = error.localizedDescription.isEmpty ? errorMessage : error.localizedDescription
+                    }
+                    
+                    self.showAlert(title: errorTitle, message: errorMessage)
                 }
             }
         }
@@ -558,16 +632,47 @@ class OrdersViewController: UIViewController {
                 }
             } catch {
                 logger.error("❌ OrdersViewController: Erro ao remover item: \(error.localizedDescription)")
-                await MainActor.run {
+                await MainActor.run { [weak self] in
+                    guard let self = self else { return }
                     self.progressIndicator.stopAnimating()
-                    self.showAlert(title: "Erro", message: "Não foi possível remover o item: \(error.localizedDescription)")
+                    
+                    var errorTitle = "Erro"
+                    var errorMessage = "Não foi possível remover o item."
+                    
+                    if let apiError = error as? ApiError {
+                        switch apiError {
+                        case .unauthorized:
+                            errorTitle = "Sessão Expirada"
+                            errorMessage = "Sua sessão expirou. Faça login novamente."
+                        case .requestFailed:
+                            errorTitle = "Erro de Conexão"
+                            errorMessage = "Erro ao conectar com o servidor. Verifique sua conexão com a internet."
+                        default:
+                            errorMessage = apiError.localizedDescription ?? errorMessage
+                        }
+                    } else if let urlError = error as? URLError {
+                        errorTitle = "Erro de Conexão"
+                        switch urlError.code {
+                        case .notConnectedToInternet, .networkConnectionLost:
+                            errorMessage = "Sem conexão com a internet. Verifique sua conexão."
+                        case .timedOut:
+                            errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                        default:
+                            errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                        }
+                    } else {
+                        errorMessage = error.localizedDescription.isEmpty ? errorMessage : error.localizedDescription
+                    }
+                    
+                    self.showAlert(title: errorTitle, message: errorMessage)
                 }
             }
         }
     }
     
     private func updateOrderStatus(_ order: Order, status: String) {
-        let logMsg = "📝 OrdersViewController: Atualizando status do pedido \(order.id) para \(status)"
+        let statusLabel = status == "out_for_delivery" ? "Enviar para Entrega" : status
+        let logMsg = "📝 OrdersViewController: Atualizando status do pedido \(order.id) para \(status) (\(statusLabel))"
         logger.info("\(logMsg)")
         print("\(logMsg)")
         progressIndicator.startAnimating()
@@ -575,18 +680,65 @@ class OrdersViewController: UIViewController {
         Task {
             do {
                 try await apiService.updateOrderStatus(orderId: order.id, status: status)
-                logger.info("✅ OrdersViewController: Status atualizado com sucesso")
+                let successMsg = "✅ OrdersViewController: Status atualizado com sucesso para \(status)"
+                logger.info("\(successMsg)")
+                print("\(successMsg)")
                 
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
+                    // Mensagem de sucesso específica para cada status
+                    let message: String
+                    if status == "out_for_delivery" {
+                        message = "Pedido enviado para entrega com sucesso!"
+                    } else if status == "finished" {
+                        message = "Pedido finalizado com sucesso!"
+                    } else {
+                        message = "Status atualizado com sucesso!"
+                    }
+                    self.showAlert(title: "Sucesso", message: message)
                     self.loadOrders()
                 }
             } catch {
-                logger.error("❌ OrdersViewController: Erro ao atualizar status: \(error.localizedDescription)")
+                let errorMsg = "❌ OrdersViewController: Erro ao atualizar status: \(error.localizedDescription)"
+                logger.error("\(errorMsg)")
+                print("\(errorMsg)")
+                
+                await MainActor.run { [weak self] in
+                    guard let self = self else { return }
+                    self.progressIndicator.stopAnimating()
+                    
+                    var errorTitle = "Erro"
+                    var errorMessage = "Não foi possível atualizar o status do pedido."
+                    
+                    if let apiError = error as? ApiError {
+                        switch apiError {
+                        case .unauthorized:
+                            errorTitle = "Sessão Expirada"
+                            errorMessage = "Sua sessão expirou. Faça login novamente."
+                        case .requestFailed:
+                            errorTitle = "Erro de Conexão"
+                            errorMessage = "Erro ao conectar com o servidor. Verifique sua conexão com a internet."
+                        default:
+                            errorMessage = apiError.localizedDescription ?? errorMessage
+                        }
+                    } else if let urlError = error as? URLError {
+                        errorTitle = "Erro de Conexão"
+                        switch urlError.code {
+                        case .notConnectedToInternet, .networkConnectionLost:
+                            errorMessage = "Sem conexão com a internet. Verifique sua conexão."
+                        case .timedOut:
+                            errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                        default:
+                            errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                        }
+                    }
+                    
+                    self.showAlert(title: errorTitle, message: errorMessage)
+                }
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
-                    let errorMsg = error.localizedDescription.isEmpty ? "Não foi possível atualizar o status do pedido." : error.localizedDescription
-                    self.showAlert(title: "Erro", message: errorMsg)
+                    let userFriendlyMsg = error.localizedDescription.isEmpty ? "Não foi possível atualizar o status do pedido. Verifique sua conexão e tente novamente." : error.localizedDescription
+                    self.showAlert(title: "Erro", message: userFriendlyMsg)
                 }
             }
         }
