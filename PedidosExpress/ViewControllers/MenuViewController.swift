@@ -3,13 +3,20 @@ import UIKit
 class MenuViewController: UIViewController {
     private var menuTableView: UITableView!
     private var progressIndicator: UIActivityIndicatorView!
+    private var segmentedControl: UISegmentedControl!
     
     private let apiService = ApiService()
-    private var menuItems: [MenuItem] = []
+    private var allMenuItems: [MenuItem] = []
+    private var filteredMenuItems: [MenuItem] = []
+    
+    private let categories = ["Bebidas", "Comidas", "Sobremesas"]
+    private var selectedCategoryIndex = 0
+    private let maxItemsPerCategory = 9
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Cardápio"
+        navigationItem.largeTitleDisplayMode = .never
         
         setupUI()
         setupTableView()
@@ -23,19 +30,47 @@ class MenuViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .pedidosOrangeLight
+        
+        // Segmented Control (Tabs)
+        segmentedControl = UISegmentedControl(items: categories)
+        segmentedControl.selectedSegmentIndex = 0
+        segmentedControl.backgroundColor = .systemBackground
+        segmentedControl.selectedSegmentTintColor = .pedidosOrange
+        segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.pedidosOrange], for: .selected)
+        segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.pedidosTextSecondary], for: .normal)
+        segmentedControl.addTarget(self, action: #selector(categoryChanged), for: .valueChanged)
+        segmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        
+        let segmentedContainer = UIView()
+        segmentedContainer.backgroundColor = .systemBackground
+        segmentedContainer.translatesAutoresizingMaskIntoConstraints = false
+        segmentedContainer.addSubview(segmentedControl)
         
         menuTableView = UITableView()
+        menuTableView.backgroundColor = .pedidosOrangeLight
         menuTableView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(menuTableView)
         
         progressIndicator = UIActivityIndicatorView(style: .large)
         progressIndicator.translatesAutoresizingMaskIntoConstraints = false
         progressIndicator.hidesWhenStopped = true
+        
+        view.addSubview(segmentedContainer)
+        view.addSubview(menuTableView)
         view.addSubview(progressIndicator)
         
         NSLayoutConstraint.activate([
-            menuTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            segmentedContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            segmentedContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            segmentedContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            segmentedContainer.heightAnchor.constraint(equalToConstant: 44),
+            
+            segmentedControl.topAnchor.constraint(equalTo: segmentedContainer.topAnchor, constant: 8),
+            segmentedControl.leadingAnchor.constraint(equalTo: segmentedContainer.leadingAnchor, constant: 16),
+            segmentedControl.trailingAnchor.constraint(equalTo: segmentedContainer.trailingAnchor, constant: -16),
+            segmentedControl.bottomAnchor.constraint(equalTo: segmentedContainer.bottomAnchor, constant: -8),
+            
+            menuTableView.topAnchor.constraint(equalTo: segmentedContainer.bottomAnchor),
             menuTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             menuTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             menuTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -43,6 +78,37 @@ class MenuViewController: UIViewController {
             progressIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             progressIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+    }
+    
+    @objc private func categoryChanged() {
+        selectedCategoryIndex = segmentedControl.selectedSegmentIndex
+        filterMenuItems()
+    }
+    
+    private func filterMenuItems() {
+        let selectedCategory = categories[selectedCategoryIndex]
+        
+        // Mapear categorias do backend para as categorias do app
+        let categoryMapping: [String: [String]] = [
+            "Bebidas": ["bebida", "bebidas"],
+            "Comidas": ["hamburguer", "hamburgueres", "comida", "comidas", "acompanhamento", "acompanhamentos"],
+            "Sobremesas": ["sobremesa", "sobremesas", "doce", "doces"]
+        ]
+        
+        // Filtrar por categoria (case-insensitive e normalizar)
+        var filtered = allMenuItems.filter { item in
+            let itemCategory = item.category.trimmingCharacters(in: .whitespaces).lowercased()
+            let targetCategories = categoryMapping[selectedCategory] ?? [selectedCategory.lowercased()]
+            return targetCategories.contains(itemCategory)
+        }
+        
+        // Limitar a 9 itens para não bugar as mensagens do bot
+        if filtered.count > maxItemsPerCategory {
+            filtered = Array(filtered.prefix(maxItemsPerCategory))
+        }
+        
+        filteredMenuItems = filtered
+        menuTableView.reloadData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -64,14 +130,36 @@ class MenuViewController: UIViewController {
                 let items = try await apiService.getMenu()
                 
                 await MainActor.run {
-                    self.menuItems = items
-                    self.menuTableView.reloadData()
+                    self.allMenuItems = items
+                    self.filterMenuItems()
                     self.progressIndicator.stopAnimating()
+                    
+                    // Se não houver itens, não mostrar erro (é normal)
+                    if items.isEmpty {
+                        // Opcional: mostrar mensagem informativa
+                        // self.showAlert(title: "Info", message: "Nenhum item no cardápio")
+                    }
                 }
             } catch {
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
-                    self.showAlert(title: "Erro", message: error.localizedDescription)
+                    
+                    // Mensagem mais amigável
+                    var errorMessage = "Erro ao carregar cardápio."
+                    if let urlError = error as? URLError {
+                        switch urlError.code {
+                        case .notConnectedToInternet, .networkConnectionLost:
+                            errorMessage = "Sem conexão com a internet. Verifique sua conexão."
+                        case .timedOut:
+                            errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                        default:
+                            errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                        }
+                    } else {
+                        errorMessage = "Erro: \(error.localizedDescription)"
+                    }
+                    
+                    self.showAlert(title: "Erro", message: errorMessage)
                 }
             }
         }
@@ -142,17 +230,17 @@ class MenuViewController: UIViewController {
 // MARK: - UITableViewDataSource, UITableViewDelegate
 extension MenuViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return menuItems.count
+        return filteredMenuItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MenuItemCell", for: indexPath) as! MenuItemTableViewCell
-        cell.configure(with: menuItems[indexPath.row])
+        cell.configure(with: filteredMenuItems[indexPath.row])
         return cell
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let item = menuItems[indexPath.row]
+        let item = filteredMenuItems[indexPath.row]
         
         let toggleAction = UIContextualAction(
             style: .normal,

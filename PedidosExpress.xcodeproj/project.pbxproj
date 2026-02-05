@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A25FAE1F2F34554C0002F12F /* Subscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = A25FAE1E2F34554C0002F12F /* Subscription.swift */; };
+		A271324D2F345846003900E7 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A271324C2F345846003900E7 /* Colors.swift */; };
+		A271324F2F345850003900E7 /* DashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A271324E2F345850003900E7 /* DashboardViewController.swift */; };
 		AA000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002 /* AppDelegate.swift */; };
 		AA000003 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004 /* SceneDelegate.swift */; };
 		AA000005 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006 /* LoginViewController.swift */; };
@@ -19,6 +21,7 @@
 		AA000017 /* SupportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* SupportViewController.swift */; };
 		AA000019 /* OrderTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* OrderTableViewCell.swift */; };
 		AA000021 /* MenuItemTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000022 /* MenuItemTableViewCell.swift */; };
+		AA000037 /* LogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000038 /* LogoView.swift */; };
 		AA000023 /* ApiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000024 /* ApiService.swift */; };
 		AA000025 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000026 /* AuthService.swift */; };
 		AA000027 /* PrinterHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000028 /* PrinterHelper.swift */; };
@@ -26,12 +29,14 @@
 		AA000031 /* Order.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000032 /* Order.swift */; };
 		AA000033 /* MenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000034 /* MenuItem.swift */; };
 		AA000035 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000036 /* Dashboard.swift */; };
-		AA000037 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000038 /* Assets.xcassets */; };
 		AA000039 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA000040 /* LaunchScreen.storyboard */; };
+		AA000044 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000045 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A25FAE1E2F34554C0002F12F /* Subscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subscription.swift; sourceTree = "<group>"; };
+		A271324C2F345846003900E7 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		A271324E2F345850003900E7 /* DashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewController.swift; sourceTree = "<group>"; };
 		AA000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA000004 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		AA000006 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
@@ -50,10 +55,11 @@
 		AA000032 /* Order.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Order.swift; sourceTree = "<group>"; };
 		AA000034 /* MenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuItem.swift; sourceTree = "<group>"; };
 		AA000036 /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
-		AA000038 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA000038 /* LogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoView.swift; sourceTree = "<group>"; };
 		AA000040 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AA000042 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000043 /* PedidosExpress.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PedidosExpress.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000045 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +128,7 @@
 		AA000050 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
+				A271324E2F345850003900E7 /* DashboardViewController.swift */,
 				AA000006 /* LoginViewController.swift */,
 				AA000008 /* MainNavigationViewController.swift */,
 				AA000010 /* OrdersViewController.swift */,
@@ -138,6 +145,7 @@
 			children = (
 				AA000020 /* OrderTableViewCell.swift */,
 				AA000022 /* MenuItemTableViewCell.swift */,
+				AA000038 /* LogoView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -145,8 +153,9 @@
 		AA000052 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				AA000038 /* Assets.xcassets */,
+				AA000045 /* Assets.xcassets */,
 				AA000040 /* LaunchScreen.storyboard */,
+				A271324C2F345846003900E7 /* Colors.swift */,
 				AA000042 /* Info.plist */,
 			);
 			path = Resources;
@@ -205,7 +214,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000037 /* Assets.xcassets in Resources */,
+				AA000044 /* Assets.xcassets in Resources */,
 				AA000039 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -218,6 +227,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000001 /* AppDelegate.swift in Sources */,
+				A271324F2F345850003900E7 /* DashboardViewController.swift in Sources */,
+				A271324D2F345846003900E7 /* Colors.swift in Sources */,
 				AA000003 /* SceneDelegate.swift in Sources */,
 				AA000005 /* LoginViewController.swift in Sources */,
 				AA000007 /* MainNavigationViewController.swift in Sources */,
@@ -229,6 +240,7 @@
 				AA000017 /* SupportViewController.swift in Sources */,
 				AA000019 /* OrderTableViewCell.swift in Sources */,
 				AA000021 /* MenuItemTableViewCell.swift in Sources */,
+				AA000037 /* LogoView.swift in Sources */,
 				AA000023 /* ApiService.swift in Sources */,
 				AA000025 /* AuthService.swift in Sources */,
 				AA000027 /* PrinterHelper.swift in Sources */,

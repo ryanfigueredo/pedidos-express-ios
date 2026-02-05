@@ -25,7 +25,8 @@ class OrdersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Pedidos Express"
+        title = "Pedidos"
+        navigationItem.largeTitleDisplayMode = .never
         setupUI()
         setupTableView()
         requestBluetoothPermissions()
@@ -34,7 +35,7 @@ class OrdersViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .pedidosOrangeLight
         
         // Segmented Control
         segmentedControl = UISegmentedControl(items: ["Pedidos", "Rota", "Entregues"])
@@ -45,6 +46,7 @@ class OrdersViewController: UIViewController {
         
         // Table View
         ordersTableView = UITableView()
+        ordersTableView.backgroundColor = .pedidosOrangeLight
         ordersTableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(ordersTableView)
         
@@ -148,8 +150,13 @@ class OrdersViewController: UIViewController {
         Task { [weak self] in
             guard let self = self else { return }
             do {
-                let response = try await self.apiService.getAllOrders(page: 1, limit: 20)
-                let sortedOrders = response.orders.sorted { $0.createdAt > $1.createdAt }
+                let response = try await self.apiService.getAllOrders(page: 1, limit: 100)
+                let sortedOrders = response.orders.sorted { 
+                    // Ordenar por data de criação (mais recente primeiro)
+                    let date1 = ISO8601DateFormatter().date(from: $0.createdAt) ?? Date.distantPast
+                    let date2 = ISO8601DateFormatter().date(from: $1.createdAt) ?? Date.distantPast
+                    return date1 > date2
+                }
                 
                 await MainActor.run { [weak self] in
                     guard let self = self else { return }
@@ -161,6 +168,12 @@ class OrdersViewController: UIViewController {
                         self.progressIndicator.stopAnimating()
                         self.refreshControl.endRefreshing()
                     }
+                    
+                    // Se não houver pedidos, não mostrar erro (é normal)
+                    if sortedOrders.isEmpty && !silent {
+                        // Opcional: mostrar mensagem informativa
+                        // self.showAlert(title: "Info", message: "Nenhum pedido encontrado")
+                    }
                 }
             } catch {
                 await MainActor.run { [weak self] in
@@ -168,7 +181,23 @@ class OrdersViewController: UIViewController {
                     if !silent {
                         self.progressIndicator.stopAnimating()
                         self.refreshControl.endRefreshing()
-                        self.showAlert(title: "Erro", message: error.localizedDescription)
+                        
+                        // Mensagem mais amigável
+                        var errorMessage = "Erro ao carregar pedidos."
+                        if let urlError = error as? URLError {
+                            switch urlError.code {
+                            case .notConnectedToInternet, .networkConnectionLost:
+                                errorMessage = "Sem conexão com a internet. Verifique sua conexão."
+                            case .timedOut:
+                                errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                            default:
+                                errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                            }
+                        } else {
+                            errorMessage = "Erro: \(error.localizedDescription)"
+                        }
+                        
+                        self.showAlert(title: "Erro", message: errorMessage)
                     }
                 }
             }

@@ -15,9 +15,15 @@ class SettingsViewController: UIViewController {
         "Sair"
     ]
     
+    private var user: User?
+    private var tenantName: String = "Loja"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Configurações"
+        navigationItem.largeTitleDisplayMode = .never
+        user = authService.getUser()
+        tenantName = user?.tenantId ?? "Loja"
         setupUI()
         setupTableView()
         loadSubscription()
@@ -25,7 +31,10 @@ class SettingsViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        user = authService.getUser()
+        tenantName = user?.tenantId ?? "Loja"
         loadSubscription()
+        settingsTableView.reloadData() // Recarregar para atualizar informações
     }
     
     private func loadSubscription() {
@@ -169,29 +178,50 @@ class SettingsViewController: UIViewController {
 // MARK: - UITableViewDataSource, UITableViewDelegate
 extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return subscription != nil ? 2 : 1
+        var sections = 1 // Sempre tem seção de informações
+        if subscription != nil {
+            sections += 1 // Seção de assinatura
+        }
+        sections += 1 // Seção de configurações
+        return sections
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if section == 0 && subscription != nil {
-            return "Assinatura e Plano"
+        if section == 0 {
+            return "Informações"
+        } else if section == 1 {
+            if subscription != nil {
+                return "Assinatura e Plano"
+            } else {
+                return nil // Seção de configurações (sem título)
+            }
         }
         return nil
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == 0 && subscription != nil {
-            // Seção de assinatura: Plano Atual, Último Pagamento, Vencimento, Aviso (se necessário), Botão Pagar
-            var rows = 3 // Plano, Pagamento, Vencimento
-            if let sub = subscription {
-                if sub.isExpired || sub.isExpiringSoon {
-                    rows += 1 // Aviso
+        if section == 0 {
+            // Seção de informações: Nome da Loja, Usuário, Conta
+            return 3
+        } else if section == 1 {
+            if subscription != nil {
+                // Seção de assinatura: Plano Atual, Último Pagamento, Vencimento, Aviso (se necessário), Botão Pagar
+                var rows = 3 // Plano, Pagamento, Vencimento
+                if let sub = subscription {
+                    if sub.isExpired || sub.isExpiringSoon {
+                        rows += 1 // Aviso
+                    }
+                    rows += 1 // Botão Pagar
                 }
-                rows += 1 // Botão Pagar
+                return rows
+            } else {
+                // Seção de configurações (quando não há subscription)
+                return settingsItems.count
             }
-            return rows
+        } else {
+            // Seção de configurações (quando há subscription)
+            return settingsItems.count
         }
-        return settingsItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -206,16 +236,55 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
         cell.backgroundColor = .systemBackground
         cell.selectionStyle = .default
         
-        if indexPath.section == 0 && subscription != nil {
-            // Seção de assinatura
-            configureSubscriptionCell(cell, at: indexPath)
+        if indexPath.section == 0 {
+            // Seção de informações
+            configureInfoCell(cell, at: indexPath)
+        } else if indexPath.section == 1 {
+            if subscription != nil {
+                // Seção de assinatura
+                configureSubscriptionCell(cell, at: indexPath)
+            } else {
+                // Seção de configurações (quando não há subscription)
+                cell.textLabel?.text = settingsItems[indexPath.row]
+                cell.accessoryType = .disclosureIndicator
+            }
         } else {
-            // Seção de configurações padrão
+            // Seção de configurações (quando há subscription)
             cell.textLabel?.text = settingsItems[indexPath.row]
             cell.accessoryType = .disclosureIndicator
         }
         
         return cell
+    }
+    
+    private func configureInfoCell(_ cell: UITableViewCell, at indexPath: IndexPath) {
+        // Garantir que o user está atualizado
+        if user == nil {
+            user = authService.getUser()
+            tenantName = user?.tenantId ?? "Loja"
+        }
+        
+        switch indexPath.row {
+        case 0:
+            cell.textLabel?.text = "Nome da Loja"
+            let displayName = tenantName.replacingOccurrences(of: "-", with: " ").capitalized
+            cell.detailTextLabel?.text = displayName.isEmpty ? "Loja" : displayName
+            cell.accessoryType = .none
+            cell.selectionStyle = .none
+        case 1:
+            cell.textLabel?.text = "Usuário"
+            cell.detailTextLabel?.text = user?.name ?? "N/A"
+            cell.accessoryType = .none
+            cell.selectionStyle = .none
+        case 2:
+            cell.textLabel?.text = "Conta"
+            let username = user?.username ?? "N/A"
+            cell.detailTextLabel?.text = "@\(username)"
+            cell.accessoryType = .none
+            cell.selectionStyle = .none
+        default:
+            break
+        }
     }
     
     private func configureSubscriptionCell(_ cell: UITableViewCell, at indexPath: IndexPath) {
@@ -295,41 +364,53 @@ extension SettingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        if indexPath.section == 0 && subscription != nil {
-            // Seção de assinatura
-            guard let subscription = subscription else { return }
-            
-            var rowIndex = indexPath.row
-            
-            // Pular Plano, Pagamento, Vencimento
-            rowIndex -= 3
-            
-            // Pular Aviso se existir
-            if subscription.isExpired || subscription.isExpiringSoon {
+        if indexPath.section == 0 {
+            // Seção de informações - não é clicável
+            return
+        } else if indexPath.section == 1 {
+            if subscription != nil {
+                // Seção de assinatura
+                guard let subscription = subscription else { return }
+                
+                var rowIndex = indexPath.row
+                
+                // Pular Plano, Pagamento, Vencimento
+                rowIndex -= 3
+                
+                // Pular Aviso se existir
+                if subscription.isExpired || subscription.isExpiringSoon {
+                    if rowIndex == 0 {
+                        // Clicou no aviso, não fazer nada
+                        return
+                    }
+                    rowIndex -= 1
+                }
+                
+                // Botão Pagar via PIX
                 if rowIndex == 0 {
-                    // Clicou no aviso, não fazer nada
+                    openPaymentPage()
                     return
                 }
-                rowIndex -= 1
-            }
-            
-            // Botão Pagar via PIX
-            if rowIndex == 0 {
-                openPaymentPage()
-                return
+            } else {
+                // Seção de configurações (quando não há subscription)
+                handleSettingsAction(at: indexPath.row)
             }
         } else {
-            // Seção de configurações padrão
-            switch indexPath.row {
-            case 0:
-                showPrinterSettings()
-            case 1:
-                showAbout()
-            case 2:
-                logout()
-            default:
-                break
-            }
+            // Seção de configurações (quando há subscription)
+            handleSettingsAction(at: indexPath.row)
+        }
+    }
+    
+    private func handleSettingsAction(at index: Int) {
+        switch index {
+        case 0:
+            showPrinterSettings()
+        case 1:
+            showAbout()
+        case 2:
+            logout()
+        default:
+            break
         }
     }
 }

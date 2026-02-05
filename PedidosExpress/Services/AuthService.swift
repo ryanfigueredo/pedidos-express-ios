@@ -19,6 +19,15 @@ class AuthService {
         userDefaults.set(true, forKey: isLoggedInKey)
     }
     
+    func saveUserWithoutPassword(_ user: User, username: String) {
+        if let userData = try? encoder.encode(user) {
+            userDefaults.set(userData, forKey: userKey)
+        }
+        userDefaults.set(username, forKey: usernameKey)
+        userDefaults.removeObject(forKey: passwordKey) // Remove senha salva
+        userDefaults.set(true, forKey: isLoggedInKey)
+    }
+    
     func getUser() -> User? {
         guard let userData = userDefaults.data(forKey: userKey) else {
             return nil

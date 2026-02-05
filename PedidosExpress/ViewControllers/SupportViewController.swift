@@ -10,13 +10,14 @@ class SupportViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Suporte"
+        navigationItem.largeTitleDisplayMode = .never
         setupUI()
         setupTableView()
         loadConversations()
     }
     
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .pedidosOrangeLight
         
         conversationsTableView = UITableView()
         conversationsTableView.translatesAutoresizingMaskIntoConstraints = false
@@ -46,6 +47,7 @@ class SupportViewController: UIViewController {
     private func setupTableView() {
         conversationsTableView.delegate = self
         conversationsTableView.dataSource = self
+        conversationsTableView.backgroundColor = .pedidosOrangeLight
         conversationsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ConversationCell")
     }
     
@@ -60,11 +62,45 @@ class SupportViewController: UIViewController {
                     self.conversations = convs
                     self.conversationsTableView.reloadData()
                     self.progressIndicator.stopAnimating()
+                    
+                    if convs.isEmpty {
+                        // Mostrar mensagem quando não houver conversas
+                        let emptyLabel = UILabel()
+                        emptyLabel.text = "Nenhuma conversa prioritária no momento"
+                        emptyLabel.textAlignment = .center
+                        emptyLabel.textColor = .secondaryLabel
+                        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
+                        self.view.addSubview(emptyLabel)
+                        
+                        NSLayoutConstraint.activate([
+                            emptyLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+                            emptyLabel.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
+                        ])
+                    }
                 }
             } catch {
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
-                    self.showAlert(title: "Erro", message: error.localizedDescription)
+                    
+                    // Mensagem mais clara sobre erro de conexão
+                    var errorMessage = "Erro ao carregar conversas."
+                    
+                    if let urlError = error as? URLError {
+                        switch urlError.code {
+                        case .notConnectedToInternet, .networkConnectionLost:
+                            errorMessage = "Sem conexão com a internet. Verifique sua conexão e tente novamente."
+                        case .timedOut:
+                            errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                        default:
+                            errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                        }
+                    } else if error is DecodingError {
+                        errorMessage = "Erro ao processar dados. Verifique sua conexão."
+                    } else {
+                        errorMessage = "Erro: \(error.localizedDescription)"
+                    }
+                    
+                    self.showAlert(title: "Erro de Conexão", message: errorMessage)
                 }
             }
         }

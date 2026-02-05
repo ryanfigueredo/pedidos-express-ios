@@ -8,6 +8,9 @@ class MainNavigationViewController: UITabBarController {
         print("📱 MainNavigationViewController: viewDidLoad chamado")
         print("📱 ViewControllers existentes: \(viewControllers?.count ?? 0)")
         
+        // Aplicar tema laranja
+        applyOrangeTheme()
+        
         // Verificar se os ViewControllers já foram configurados pelo storyboard
         // Se não, configurar programaticamente
         if viewControllers == nil || viewControllers?.isEmpty == true {
@@ -16,6 +19,27 @@ class MainNavigationViewController: UITabBarController {
         } else {
             print("📱 TabBar já configurado pelo storyboard")
         }
+    }
+    
+    private func applyOrangeTheme() {
+        // TabBar
+        tabBar.tintColor = .pedidosOrange
+        tabBar.unselectedItemTintColor = .pedidosTextSecondary
+        tabBar.backgroundColor = .systemBackground
+        
+        // Navigation Bar (para cada view controller)
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .systemBackground
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.pedidosOrange]
+        // Configurar large title text attributes também (caso seja habilitado em algum lugar)
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.pedidosOrange]
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().tintColor = .pedidosOrange
+        // Desabilitar large titles globalmente para evitar duplicação
+        UINavigationBar.appearance().prefersLargeTitles = false
     }
     
     private func setupTabBar() {
