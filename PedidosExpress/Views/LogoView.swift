@@ -216,45 +216,80 @@ extension LogoView {
         return renderer.image { context in
             let cgContext = context.cgContext
             
-            // Fundo com gradiente laranja
-            let colorSpace = CGColorSpaceCreateDeviceRGB()
-            let colors = [
-                UIColor(red: 234/255, green: 88/255, blue: 12/255, alpha: 1.0).cgColor,
-                UIColor(red: 249/255, green: 115/255, blue: 22/255, alpha: 1.0).cgColor
-            ]
-            let gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: nil)!
-            
-            cgContext.drawLinearGradient(
-                gradient,
-                start: CGPoint(x: 0, y: 0),
-                end: CGPoint(x: size.width, y: size.height),
-                options: []
-            )
-            
-            // Efeito de vidro líquido (overlay branco semi-transparente)
-            cgContext.setFillColor(UIColor.white.withAlphaComponent(0.2).cgColor)
-            let glassRect = CGRect(x: 0, y: 0, width: size.width, height: size.height * 0.4)
-            cgContext.fill(glassRect)
-            
-            // Desenhar ícone de recibo branco
+            // Fundo BRANCO sólido
             cgContext.setFillColor(UIColor.white.cgColor)
-            let receiptWidth = size.width * 0.6
-            let receiptHeight = size.height * 0.7
+            cgContext.fill(CGRect(origin: .zero, size: size))
+            
+            // Desenhar ícone de recibo em laranja (MENOR - ocupando ~50% do espaço)
+            let pedidosOrange = UIColor(red: 234/255, green: 88/255, blue: 12/255, alpha: 1.0)
+            cgContext.setFillColor(pedidosOrange.cgColor)
+            
+            // Recibo menor: 50% da largura e 55% da altura (ao invés de 60% e 70%)
+            let receiptWidth = size.width * 0.5
+            let receiptHeight = size.height * 0.55
             let receiptX = (size.width - receiptWidth) / 2
             let receiptY = (size.height - receiptHeight) / 2
             
-            let receiptRect = CGRect(x: receiptX, y: receiptY, width: receiptWidth, height: receiptHeight)
-            cgContext.fill(receiptRect)
+            // Criar forma de recibo com bordas arredondadas e parte inferior "rasgada"
+            let cornerRadius: CGFloat = size.width * 0.03
+            let receiptPath = CGMutablePath()
             
-            // Linhas do recibo em laranja
-            cgContext.setStrokeColor(UIColor(red: 234/255, green: 88/255, blue: 12/255, alpha: 1.0).cgColor)
-            cgContext.setLineWidth(size.width * 0.02)
+            // Topo arredondado
+            receiptPath.move(to: CGPoint(x: receiptX + cornerRadius, y: receiptY + receiptHeight))
+            receiptPath.addLine(to: CGPoint(x: receiptX + receiptWidth - cornerRadius, y: receiptY + receiptHeight))
+            receiptPath.addQuadCurve(to: CGPoint(x: receiptX + receiptWidth, y: receiptY + receiptHeight - cornerRadius),
+                                    control: CGPoint(x: receiptX + receiptWidth, y: receiptY + receiptHeight))
             
-            for i in 0..<5 {
-                let y = receiptRect.minY + receiptRect.height * 0.2 + CGFloat(i) * receiptRect.height * 0.15
-                cgContext.move(to: CGPoint(x: receiptRect.minX + receiptRect.width * 0.1, y: y))
-                cgContext.addLine(to: CGPoint(x: receiptRect.maxX - receiptRect.width * 0.1, y: y))
+            // Lado direito
+            receiptPath.addLine(to: CGPoint(x: receiptX + receiptWidth, y: receiptY + cornerRadius))
+            receiptPath.addQuadCurve(to: CGPoint(x: receiptX + receiptWidth - cornerRadius, y: receiptY),
+                                    control: CGPoint(x: receiptX + receiptWidth, y: receiptY))
+            
+            // Lado esquerdo
+            receiptPath.addLine(to: CGPoint(x: receiptX + cornerRadius, y: receiptY))
+            receiptPath.addQuadCurve(to: CGPoint(x: receiptX, y: receiptY + cornerRadius),
+                                    control: CGPoint(x: receiptX, y: receiptY))
+            
+            // Parte inferior com efeito "rasgado" (ondulado)
+            let wavePoints = 6
+            let waveAmplitude = size.width * 0.015
+            for i in 0...wavePoints {
+                let progress = CGFloat(i) / CGFloat(wavePoints)
+                let x = receiptX + progress * receiptWidth
+                let y = receiptY + receiptHeight + (i % 2 == 0 ? waveAmplitude : -waveAmplitude)
+                if i == 0 {
+                    receiptPath.move(to: CGPoint(x: x, y: y))
+                } else {
+                    receiptPath.addLine(to: CGPoint(x: x, y: y))
+                }
             }
+            receiptPath.closeSubpath()
+            
+            cgContext.addPath(receiptPath)
+            cgContext.fillPath()
+            
+            // Linhas horizontais do recibo em laranja mais escuro
+            let darkerOrange = UIColor(red: 200/255, green: 70/255, blue: 8/255, alpha: 1.0)
+            cgContext.setStrokeColor(darkerOrange.cgColor)
+            cgContext.setLineWidth(size.width * 0.015)
+            
+            let receiptRect = CGRect(x: receiptX, y: receiptY, width: receiptWidth, height: receiptHeight)
+            let lineSpacing = receiptHeight * 0.12
+            let lineStartX = receiptRect.minX + receiptRect.width * 0.15
+            let lineEndX = receiptRect.maxX - receiptRect.width * 0.15
+            
+            // Linha de título (mais curta)
+            let titleY = receiptRect.minY + receiptRect.height * 0.18
+            cgContext.move(to: CGPoint(x: lineStartX, y: titleY))
+            cgContext.addLine(to: CGPoint(x: lineStartX + receiptRect.width * 0.25, y: titleY))
+            
+            // Linhas de conteúdo
+            for i in 1..<4 {
+                let y = receiptRect.minY + receiptRect.height * 0.25 + CGFloat(i) * lineSpacing
+                cgContext.move(to: CGPoint(x: lineStartX, y: y))
+                cgContext.addLine(to: CGPoint(x: lineEndX, y: y))
+            }
+            
             cgContext.strokePath()
         }
     }

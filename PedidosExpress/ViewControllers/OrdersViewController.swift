@@ -277,11 +277,10 @@ class OrdersViewController: UIViewController {
         let authService = AuthService()
         let user = authService.getUser()
         let pendingLabel = BusinessTypeHelper.pendingOrdersLabel(for: user)
-        segmentedControl.setTitle("\(pendingLabel) (\(pendingCount))", forSegmentAt: 0)
-        let authService = AuthService()
-        let user = authService.getUser()
         let outForDeliveryLabel = BusinessTypeHelper.outForDeliveryLabel(for: user)
         let finishedLabel = BusinessTypeHelper.finishedOrdersLabel(for: user)
+        
+        segmentedControl.setTitle("\(pendingLabel) (\(pendingCount))", forSegmentAt: 0)
         segmentedControl.setTitle("\(outForDeliveryLabel) (\(deliveryCount))", forSegmentAt: 1)
         segmentedControl.setTitle("\(finishedLabel) (\(finishedCount))", forSegmentAt: 2)
     }
