@@ -15,7 +15,9 @@ class MenuViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Cardápio"
+        let authService = AuthService()
+        let user = authService.getUser()
+        title = BusinessTypeHelper.menuLabel(for: user)
         navigationItem.largeTitleDisplayMode = .never
         
         setupUI()

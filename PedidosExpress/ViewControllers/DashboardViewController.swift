@@ -54,7 +54,7 @@ class DashboardViewController: UIViewController {
         let card1 = createKPICard(
             icon: "cart.fill",
             value: "0",
-            title: "Pedidos Hoje",
+            title: BusinessTypeHelper.ordersTodayLabel(for: AuthService().getUser()),
             gradientStart: .gradientOrangeStart,
             gradientEnd: .gradientOrangeEnd
         )
@@ -229,7 +229,9 @@ class DashboardViewController: UIViewController {
         weekRevenueLabel.font = .systemFont(ofSize: 18, weight: .bold)
         weekRevenueLabel.textColor = .pedidosTextPrimary
         
-        let ordersRow = createInfoRow(label: "Pedidos:", valueLabel: weekOrdersLabel)
+        let user = AuthService().getUser()
+        let ordersLabel = BusinessTypeHelper.ordersLabel(for: user)
+        let ordersRow = createInfoRow(label: "\(ordersLabel):", valueLabel: weekOrdersLabel)
         let revenueRow = createInfoRow(label: "Receita:", valueLabel: weekRevenueLabel)
         
         let stack = UIStackView(arrangedSubviews: [titleLabel, ordersRow, revenueRow])

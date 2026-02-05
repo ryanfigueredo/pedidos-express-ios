@@ -25,7 +25,9 @@ class OrdersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Pedidos"
+        let authService = AuthService()
+        let user = authService.getUser()
+        title = BusinessTypeHelper.ordersLabel(for: user)
         navigationItem.largeTitleDisplayMode = .never
         setupUI()
         setupTableView()
@@ -38,7 +40,12 @@ class OrdersViewController: UIViewController {
         view.backgroundColor = .pedidosOrangeLight
         
         // Segmented Control
-        segmentedControl = UISegmentedControl(items: ["Pedidos", "Rota", "Entregues"])
+        let authService = AuthService()
+        let user = authService.getUser()
+        let pendingLabel = BusinessTypeHelper.pendingOrdersLabel(for: user)
+        let outForDeliveryLabel = BusinessTypeHelper.outForDeliveryLabel(for: user)
+        let finishedLabel = BusinessTypeHelper.finishedOrdersLabel(for: user)
+        segmentedControl = UISegmentedControl(items: [pendingLabel, outForDeliveryLabel, finishedLabel])
         segmentedControl.selectedSegmentIndex = 0
         segmentedControl.translatesAutoresizingMaskIntoConstraints = false
         segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
@@ -267,13 +274,23 @@ class OrdersViewController: UIViewController {
         let deliveryCount = allOrders.filter { $0.status == "out_for_delivery" }.count
         let finishedCount = allOrders.filter { $0.status == "finished" || $0.status == "cancelled" }.count
         
-        segmentedControl.setTitle("Pedidos (\(pendingCount))", forSegmentAt: 0)
-        segmentedControl.setTitle("Rota (\(deliveryCount))", forSegmentAt: 1)
-        segmentedControl.setTitle("Entregues (\(finishedCount))", forSegmentAt: 2)
+        let authService = AuthService()
+        let user = authService.getUser()
+        let pendingLabel = BusinessTypeHelper.pendingOrdersLabel(for: user)
+        segmentedControl.setTitle("\(pendingLabel) (\(pendingCount))", forSegmentAt: 0)
+        let authService = AuthService()
+        let user = authService.getUser()
+        let outForDeliveryLabel = BusinessTypeHelper.outForDeliveryLabel(for: user)
+        let finishedLabel = BusinessTypeHelper.finishedOrdersLabel(for: user)
+        segmentedControl.setTitle("\(outForDeliveryLabel) (\(deliveryCount))", forSegmentAt: 1)
+        segmentedControl.setTitle("\(finishedLabel) (\(finishedCount))", forSegmentAt: 2)
     }
     
     private func showOrderMenu(_ order: Order) {
-        let alert = UIAlertController(title: "Opções do Pedido", message: nil, preferredStyle: .actionSheet)
+        let authService = AuthService()
+        let user = authService.getUser()
+        let orderLabel = BusinessTypeHelper.orderLabel(for: user)
+        let alert = UIAlertController(title: "Opções do \(orderLabel)", message: nil, preferredStyle: .actionSheet)
         
         // Se estiver em rota, mostrar opções de entrega
         if order.status == "out_for_delivery" {

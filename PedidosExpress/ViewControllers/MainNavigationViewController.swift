@@ -44,13 +44,17 @@ class MainNavigationViewController: UITabBarController {
     
     private func setupTabBar() {
         let ordersVC = OrdersViewController()
-        ordersVC.tabBarItem = UITabBarItem(title: "Pedidos", image: UIImage(systemName: "list.bullet"), tag: 0)
+        let authService = AuthService()
+        let user = authService.getUser()
+        let ordersLabel = BusinessTypeHelper.ordersLabel(for: user)
+        ordersVC.tabBarItem = UITabBarItem(title: ordersLabel, image: UIImage(systemName: "list.bullet"), tag: 0)
         
         let dashboardVC = DashboardViewController()
         dashboardVC.tabBarItem = UITabBarItem(title: "Dashboard", image: UIImage(systemName: "chart.bar"), tag: 1)
         
         let menuVC = MenuViewController()
-        menuVC.tabBarItem = UITabBarItem(title: "Cardápio", image: UIImage(systemName: "menucard"), tag: 2)
+        let menuLabel = BusinessTypeHelper.menuLabel(for: user)
+        menuVC.tabBarItem = UITabBarItem(title: menuLabel, image: UIImage(systemName: "menucard"), tag: 2)
         
         let supportVC = SupportViewController()
         supportVC.tabBarItem = UITabBarItem(title: "Suporte", image: UIImage(systemName: "message"), tag: 3)
