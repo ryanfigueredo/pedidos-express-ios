@@ -58,10 +58,21 @@ class SupportViewController: UIViewController {
             do {
                 let convs = try await apiService.getPriorityConversations()
                 
+                #if DEBUG
+                print("💬 SupportViewController: Recebidas \(convs.count) conversas prioritárias")
+                #endif
+                
                 await MainActor.run {
                     self.conversations = convs
                     self.conversationsTableView.reloadData()
                     self.progressIndicator.stopAnimating()
+                    
+                    // Remover label de vazio anterior se existir
+                    self.view.subviews.forEach { subview in
+                        if subview is UILabel && subview.tag == 999 {
+                            subview.removeFromSuperview()
+                        }
+                    }
                     
                     if convs.isEmpty {
                         // Mostrar mensagem quando não houver conversas
@@ -69,6 +80,7 @@ class SupportViewController: UIViewController {
                         emptyLabel.text = "Nenhuma conversa prioritária no momento"
                         emptyLabel.textAlignment = .center
                         emptyLabel.textColor = .secondaryLabel
+                        emptyLabel.tag = 999 // Tag para identificar e remover depois
                         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
                         self.view.addSubview(emptyLabel)
                         
@@ -82,37 +94,41 @@ class SupportViewController: UIViewController {
                 await MainActor.run {
                     self.progressIndicator.stopAnimating()
                     
-                    // Mensagem mais clara sobre erro de conexão
-                    var errorMessage = "Erro ao carregar conversas."
+                    #if DEBUG
+                    print("❌ SupportViewController: Erro ao carregar conversas - \(error)")
+                    #endif
                     
+                    // Não mostrar alerta se for apenas lista vazia (é normal)
+                    // Apenas logar o erro
                     if let urlError = error as? URLError {
                         switch urlError.code {
                         case .notConnectedToInternet, .networkConnectionLost:
-                            errorMessage = "Sem conexão com a internet. Verifique sua conexão e tente novamente."
+                            print("⚠️ SupportViewController: Sem conexão com a internet")
                         case .timedOut:
-                            errorMessage = "Tempo de conexão esgotado. Tente novamente."
+                            print("⚠️ SupportViewController: Timeout na requisição")
                         default:
-                            errorMessage = "Erro de conexão: \(urlError.localizedDescription)"
+                            print("⚠️ SupportViewController: Erro de conexão - \(urlError.localizedDescription)")
                         }
-                    } else if error is DecodingError {
-                        errorMessage = "Erro ao processar dados. Verifique sua conexão."
                     } else {
-                        errorMessage = "Erro: \(error.localizedDescription)"
+                        print("⚠️ SupportViewController: Erro - \(error.localizedDescription)")
                     }
                     
-                    self.showAlert(title: "Erro de Conexão", message: errorMessage)
+                    // Não mostrar alerta para não incomodar o usuário
+                    // Apenas manter lista vazia
                 }
             }
         }
     }
     
-    private func openWhatsApp(_ conversation: PriorityConversation) {
-        if let url = URL(string: conversation.whatsappUrl) {
-            UIApplication.shared.open(url)
-        }
-    }
-    
     private func showAlert(title: String, message: String) {
+        // Verificar se já há um alerta sendo apresentado
+        guard presentedViewController == nil else {
+            #if DEBUG
+            print("⚠️ SupportViewController: Já há um alerta sendo apresentado, ignorando novo alerta")
+            #endif
+            return
+        }
+        
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
@@ -139,6 +155,31 @@ extension SupportViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let conversation = conversations[indexPath.row]
-        openWhatsApp(conversation)
+        
+        #if DEBUG
+        print("💬 SupportViewController: Abrindo chat para \(conversation.phoneFormatted)")
+        #endif
+        
+        // Abrir chat dentro do app (bot responde via Meta Cloud API)
+        let chatVC = ChatViewController(conversation: conversation)
+        
+        if let navController = navigationController {
+            #if DEBUG
+            print("💬 SupportViewController: NavigationController encontrado, navegando...")
+            #endif
+            navController.pushViewController(chatVC, animated: true)
+        } else {
+            #if DEBUG
+            print("❌ SupportViewController: NavigationController é nil!")
+            #endif
+            // Fallback: apresentar modalmente
+            let navVC = UINavigationController(rootViewController: chatVC)
+            chatVC.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissChat))
+            present(navVC, animated: true)
+        }
+    }
+    
+    @objc private func dismissChat() {
+        dismiss(animated: true)
     }
 }

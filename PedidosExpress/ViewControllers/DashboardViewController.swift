@@ -284,6 +284,10 @@ class DashboardViewController: UIViewController {
             do {
                 let stats = try await apiService.getStats()
                 
+                #if DEBUG
+                print("📊 Dashboard.loadStats: Recebidos stats - today.orders=\(stats.today.orders), today.revenue=\(stats.today.revenue)")
+                #endif
+                
                 await MainActor.run {
                     self.updateUI(with: stats)
                     self.progressIndicator.stopAnimating()
@@ -316,21 +320,35 @@ class DashboardViewController: UIViewController {
     }
     
     private func updateUI(with stats: DashboardStats) {
+        #if DEBUG
+        print("📊 Dashboard.updateUI: today.orders=\(stats.today.orders), today.revenue=\(stats.today.revenue)")
+        print("   week.orders=\(stats.week.orders), week.revenue=\(stats.week.revenue), pending=\(stats.pendingOrders)")
+        #endif
+        
         todayOrdersLabel.text = "\(stats.today.orders)"
         
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = Locale(identifier: "pt_BR")
-        todayRevenueLabel.text = formatter.string(from: NSNumber(value: stats.today.revenue))
+        formatter.currencySymbol = "R$"
+        
+        let todayRevenueText = formatter.string(from: NSNumber(value: stats.today.revenue)) ?? "R$ 0,00"
+        todayRevenueLabel.text = todayRevenueText
         
         weekOrdersLabel.text = "\(stats.week.orders)"
-        weekRevenueLabel.text = formatter.string(from: NSNumber(value: stats.week.revenue))
+        let weekRevenueText = formatter.string(from: NSNumber(value: stats.week.revenue)) ?? "R$ 0,00"
+        weekRevenueLabel.text = weekRevenueText
         
         pendingOrdersLabel.text = "\(stats.pendingOrders)"
         
         // Calcular ticket médio
         let avgTicket = stats.today.orders > 0 ? stats.today.revenue / Double(stats.today.orders) : 0.0
-        avgTicketLabel.text = formatter.string(from: NSNumber(value: avgTicket))
+        let avgTicketText = formatter.string(from: NSNumber(value: avgTicket)) ?? "R$ 0,00"
+        avgTicketLabel.text = avgTicketText
+        
+        #if DEBUG
+        print("   📊 Labels atualizados: hoje=\(todayRevenueText), semana=\(weekRevenueText), ticket=\(avgTicketText)")
+        #endif
     }
     
     private func showAlert(title: String, message: String) {

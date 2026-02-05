@@ -1,0 +1,121 @@
+{
+  "" : {
+    "const-values" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary.swiftconstvalues",
+    "dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary.d",
+    "diagnostics" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary.dia",
+    "emit-module-dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary-emit-module.dia",
+    "pch" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PedidosExpress-primary.swiftdeps"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/AppDelegate.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/AppDelegate.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/AppDelegate.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/AppDelegate.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Models/Dashboard.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Dashboard.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Dashboard.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Dashboard.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Models/MenuItem.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuItem.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuItem.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuItem.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Models/Order.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Order.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Order.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Order.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Models/Subscription.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Subscription.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Subscription.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Subscription.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Models/User.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/User.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/User.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/User.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Resources/Colors.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Colors.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Colors.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/Colors.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/SceneDelegate.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SceneDelegate.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SceneDelegate.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SceneDelegate.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Services/ApiService.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/ApiService.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/ApiService.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/ApiService.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Services/AuthService.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/AuthService.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/AuthService.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/AuthService.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Services/PrinterHelper.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PrinterHelper.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PrinterHelper.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/PrinterHelper.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/DashboardViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/DashboardViewController-3b1956114176e87db85fe241ae3719f1.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/DashboardViewController-3b1956114176e87db85fe241ae3719f1.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/DashboardViewController-3b1956114176e87db85fe241ae3719f1.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/LoginViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/LoginViewController.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/LoginViewController.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/LoginViewController.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/MainNavigationViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MainNavigationViewController.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MainNavigationViewController.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MainNavigationViewController.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/MenuViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuViewController.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuViewController.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuViewController.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/OrdersViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/OrdersViewController.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/OrdersViewController.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/OrdersViewController.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/SettingsViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SettingsViewController.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SettingsViewController.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SettingsViewController.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/SupportViewController.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SupportViewController.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SupportViewController.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/SupportViewController.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Views/LogoView.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/LogoView.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/LogoView.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/LogoView.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Views/MenuItemTableViewCell.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuItemTableViewCell.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuItemTableViewCell.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/MenuItemTableViewCell.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/Views/OrderTableViewCell.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/OrderTableViewCell.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/OrderTableViewCell.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/OrderTableViewCell.o"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/x86_64/GeneratedAssetSymbols.o"
+  }
+}

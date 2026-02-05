@@ -50,15 +50,34 @@ class OrderTableViewCell: UITableViewCell {
     }
     
     func configure(with order: Order) {
-        customerLabel.text = order.customerName
+        #if DEBUG
+        print("📱 OrderTableViewCell.configure: ID=\(order.id), cliente=\(order.customerName), items=\(order.items.count), total=\(order.totalPrice)")
+        #endif
         
-        let itemsText = order.items.map { "\($0.quantity)x \($0.name)" }.joined(separator: ", ")
-        itemsLabel.text = itemsText
+        // Cliente
+        let customerText = order.customerName.isEmpty ? "Cliente" : order.customerName
+        customerLabel.text = customerText.isEmpty ? "Cliente" : customerText
         
+        // Itens
+        if order.items.isEmpty {
+            itemsLabel.text = "Nenhum item"
+        } else {
+            let itemsText = order.items.map { item in
+                let quantity = item.quantity > 0 ? item.quantity : 1
+                let name = item.name.isEmpty ? "Item sem nome" : item.name
+                return "\(quantity)x \(name)"
+            }.joined(separator: ", ")
+            itemsLabel.text = itemsText.isEmpty ? "Nenhum item" : itemsText
+        }
+        
+        // Preço
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = Locale(identifier: "pt_BR")
-        priceLabel.text = formatter.string(from: NSNumber(value: order.totalPrice))
+        formatter.currencySymbol = "R$"
+        let priceValue = order.totalPrice > 0 ? order.totalPrice : 0.0
+        let priceText = formatter.string(from: NSNumber(value: priceValue)) ?? "R$ 0,00"
+        priceLabel.text = priceText
         
         // Formatar hora
         if let date = parseDate(order.createdAt) {
@@ -66,15 +85,26 @@ class OrderTableViewCell: UITableViewCell {
             timeFormatter.dateFormat = "HH:mm"
             timeLabel.text = timeFormatter.string(from: date)
         } else {
-            timeLabel.text = String(order.createdAt.prefix(5))
+            // Tentar outros formatos
+            let isoFormatter = ISO8601DateFormatter()
+            if let isoDate = isoFormatter.date(from: order.createdAt) {
+                let timeFormatter = DateFormatter()
+                timeFormatter.dateFormat = "HH:mm"
+                timeLabel.text = timeFormatter.string(from: isoDate)
+            } else {
+                timeLabel.text = String(order.createdAt.prefix(5))
+            }
         }
         
         // Status
         let statusText: String
         let statusColor: UIColor
         switch order.status {
-        case "pending", "printed":
+        case "pending":
             statusText = "Pendente"
+            statusColor = .systemOrange
+        case "printed":
+            statusText = "Impresso"
             statusColor = .systemOrange
         case "out_for_delivery":
             statusText = "Em Rota"
@@ -86,7 +116,7 @@ class OrderTableViewCell: UITableViewCell {
             statusText = "Cancelado"
             statusColor = .systemRed
         default:
-            statusText = order.status
+            statusText = order.status.capitalized
             statusColor = .systemGray
         }
         
@@ -95,9 +125,33 @@ class OrderTableViewCell: UITableViewCell {
     }
     
     private func parseDate(_ dateString: String) -> Date? {
+        // Tentar formato ISO8601 completo primeiro
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
+        
+        // Tentar ISO8601 sem frações
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
+        
+        // Tentar formato simples
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         formatter.timeZone = TimeZone(identifier: "UTC")
-        return formatter.date(from: dateString)
+        if let date = formatter.date(from: dateString) {
+            return date
+        }
+        
+        // Tentar formato com Z
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        if let date = formatter.date(from: dateString) {
+            return date
+        }
+        
+        return nil
     }
 }

@@ -151,6 +151,11 @@ class OrdersViewController: UIViewController {
             guard let self = self else { return }
             do {
                 let response = try await self.apiService.getAllOrders(page: 1, limit: 100)
+                
+                #if DEBUG
+                print("📱 OrdersViewController: Recebidos \(response.orders.count) pedidos da API")
+                #endif
+                
                 let sortedOrders = response.orders.sorted { 
                     // Ordenar por data de criação (mais recente primeiro)
                     let date1 = ISO8601DateFormatter().date(from: $0.createdAt) ?? Date.distantPast
@@ -158,10 +163,19 @@ class OrdersViewController: UIViewController {
                     return date1 > date2
                 }
                 
+                #if DEBUG
+                print("📱 OrdersViewController: Após ordenação: \(sortedOrders.count) pedidos")
+                #endif
+                
                 await MainActor.run { [weak self] in
                     guard let self = self else { return }
                     self.allOrders = sortedOrders
                     self.filterOrders()
+                    
+                    #if DEBUG
+                    print("📱 OrdersViewController: allOrders = \(self.allOrders.count), filteredOrders = \(self.filteredOrders.count)")
+                    #endif
+                    
                     self.detectAndPrintNewOrders(sortedOrders)
                     
                     if !silent {
@@ -237,6 +251,13 @@ class OrdersViewController: UIViewController {
             filteredOrders = allOrders.filter { $0.status == "finished" || $0.status == "cancelled" }
         }
         
+        #if DEBUG
+        print("📱 filterOrders: Seção atual = \(currentSection), allOrders = \(allOrders.count), filteredOrders = \(filteredOrders.count)")
+        for (index, order) in filteredOrders.prefix(3).enumerated() {
+            print("   Pedido \(index + 1): ID=\(order.id), status=\(order.status), cliente=\(order.customerName)")
+        }
+        #endif
+        
         updateSegmentTitles()
         ordersTableView.reloadData()
     }
@@ -254,12 +275,52 @@ class OrdersViewController: UIViewController {
     private func showOrderMenu(_ order: Order) {
         let alert = UIAlertController(title: "Opções do Pedido", message: nil, preferredStyle: .actionSheet)
         
-        alert.addAction(UIAlertAction(title: "Imprimir", style: .default) { [weak self] _ in
-            self?.printerHelper.printOrder(order)
-        })
+        // Se estiver em rota, mostrar opções de entrega
+        if order.status == "out_for_delivery" {
+            alert.addAction(UIAlertAction(title: "Confirmar Entrega", style: .default) { [weak self] _ in
+                self?.confirmDelivery(order)
+            })
+            
+            alert.addAction(UIAlertAction(title: "Reportar Problema", style: .destructive) { [weak self] _ in
+                self?.reportDeliveryProblem(order)
+            })
+        } else {
+            // Opções normais para pedidos pendentes/impressos
+            alert.addAction(UIAlertAction(title: "Imprimir", style: .default) { [weak self] _ in
+                self?.printerHelper.printOrder(order)
+            })
+            
+            alert.addAction(UIAlertAction(title: "Editar", style: .default) { [weak self] _ in
+                self?.showEditOrderDialog(order)
+            })
+            
+            alert.addAction(UIAlertAction(title: "Enviar para Entrega", style: .default) { [weak self] _ in
+                self?.updateOrderStatus(order, status: "out_for_delivery")
+            })
+        }
         
-        alert.addAction(UIAlertAction(title: "Atualizar Status", style: .default) { [weak self] _ in
-            self?.showUpdateStatusDialog(order)
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        // Para iPad, precisa configurar o popover
+        if let popover = alert.popoverPresentationController {
+            if let cell = ordersTableView.cellForRow(at: IndexPath(row: filteredOrders.firstIndex(where: { $0.id == order.id }) ?? 0, section: 0)) {
+                popover.sourceView = cell
+                popover.sourceRect = cell.bounds
+            }
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    private func confirmDelivery(_ order: Order) {
+        let alert = UIAlertController(
+            title: "Confirmar Entrega",
+            message: "Deseja confirmar a entrega deste pedido?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Confirmar", style: .default) { [weak self] _ in
+            self?.updateOrderStatus(order, status: "finished")
         })
         
         alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
@@ -267,18 +328,39 @@ class OrdersViewController: UIViewController {
         present(alert, animated: true)
     }
     
-    private func showUpdateStatusDialog(_ order: Order) {
-        let alert = UIAlertController(title: "Atualizar Status", message: nil, preferredStyle: .actionSheet)
+    private func reportDeliveryProblem(_ order: Order) {
+        let alert = UIAlertController(
+            title: "Reportar Problema",
+            message: "Descreva o problema encontrado na entrega:",
+            preferredStyle: .alert
+        )
         
-        alert.addAction(UIAlertAction(title: "Saiu para Entrega", style: .default) { [weak self] _ in
-            self?.updateOrderStatus(order, status: "out_for_delivery")
-        })
+        alert.addTextField { textField in
+            textField.placeholder = "Ex: Cliente não estava em casa"
+        }
         
-        alert.addAction(UIAlertAction(title: "Cancelar Pedido", style: .destructive) { [weak self] _ in
-            self?.updateOrderStatus(order, status: "cancelled")
+        alert.addAction(UIAlertAction(title: "Reportar", style: .destructive) { [weak self] _ in
+            let _ = alert.textFields?.first?.text ?? "Problema na entrega"
+            // Por enquanto, apenas atualizar status para pending novamente
+            // TODO: Implementar endpoint para reportar problemas
+            self?.updateOrderStatus(order, status: "pending")
         })
         
         alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func showEditOrderDialog(_ order: Order) {
+        // Por enquanto, mostrar um alerta informativo
+        // TODO: Implementar tela de edição completa
+        let alert = UIAlertController(
+            title: "Editar Pedido",
+            message: "Funcionalidade de edição será implementada em breve.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         
         present(alert, animated: true)
     }
@@ -326,24 +408,35 @@ extension OrdersViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let order = filteredOrders[indexPath.row]
-        printerHelper.printOrder(order)
+        showOrderMenu(order)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let order = filteredOrders[indexPath.row]
         
-        let printAction = UIContextualAction(style: .normal, title: "Imprimir") { [weak self] _, _, completion in
-            self?.printerHelper.printOrder(order)
-            completion(true)
+        // Se estiver em rota, mostrar ações rápidas de entrega
+        if order.status == "out_for_delivery" {
+            let confirmAction = UIContextualAction(style: .normal, title: "Entregue") { [weak self] _, _, completion in
+                self?.confirmDelivery(order)
+                completion(true)
+            }
+            confirmAction.backgroundColor = .systemGreen
+            
+            let problemAction = UIContextualAction(style: .destructive, title: "Problema") { [weak self] _, _, completion in
+                self?.reportDeliveryProblem(order)
+                completion(true)
+            }
+            
+            return UISwipeActionsConfiguration(actions: [confirmAction, problemAction])
+        } else {
+            // Para outros status, mostrar ação rápida de imprimir
+            let printAction = UIContextualAction(style: .normal, title: "Imprimir") { [weak self] _, _, completion in
+                self?.printerHelper.printOrder(order)
+                completion(true)
+            }
+            printAction.backgroundColor = .systemBlue
+            
+            return UISwipeActionsConfiguration(actions: [printAction])
         }
-        printAction.backgroundColor = .systemBlue
-        
-        let menuAction = UIContextualAction(style: .normal, title: "Menu") { [weak self] _, _, completion in
-            self?.showOrderMenu(order)
-            completion(true)
-        }
-        menuAction.backgroundColor = .systemGray
-        
-        return UISwipeActionsConfiguration(actions: [printAction, menuAction])
     }
 }

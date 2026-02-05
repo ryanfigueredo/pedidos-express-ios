@@ -37,7 +37,8 @@ class MenuViewController: UIViewController {
         segmentedControl.selectedSegmentIndex = 0
         segmentedControl.backgroundColor = .systemBackground
         segmentedControl.selectedSegmentTintColor = .pedidosOrange
-        segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.pedidosOrange], for: .selected)
+        // Texto branco quando selecionado para melhor contraste
+        segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
         segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.pedidosTextSecondary], for: .normal)
         segmentedControl.addTarget(self, action: #selector(categoryChanged), for: .valueChanged)
         segmentedControl.translatesAutoresizingMaskIntoConstraints = false

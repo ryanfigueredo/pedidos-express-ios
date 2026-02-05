@@ -70,8 +70,7 @@ class LogoView: UIView {
     
     private func loadSVGIcon() {
         // Tentar carregar o SVG do bundle
-        if let svgPath = Bundle.main.path(forResource: "icon", ofType: "svg"),
-           let svgData = try? Data(contentsOf: URL(fileURLWithPath: svgPath)) {
+        if Bundle.main.path(forResource: "icon", ofType: "svg") != nil {
             // Criar imagem a partir do SVG
             // Nota: iOS não suporta SVG nativamente, então vamos criar uma imagem programaticamente
             createIconImage()
@@ -82,61 +81,130 @@ class LogoView: UIView {
     }
     
     private func createIconImage() {
-        // Criar ícone de recibo/pedido usando Core Graphics (baseado no SVG)
+        // Criar ícone de entrega (homem em scooter) usando Core Graphics
         let size = CGSize(width: 120, height: 120)
         let renderer = UIGraphicsImageRenderer(size: size)
         
         let image = renderer.image { context in
             let cgContext = context.cgContext
             
-            // Escala para desenhar o recibo completo
-            let scale: CGFloat = size.width / 32.0 // SVG é 32x32
+            // Fundo circular com gradiente laranja
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let radius = min(size.width, size.height) / 2 - 4
             
-            // Desenhar recibo principal (baseado no SVG)
+            // Gradiente de fundo
+            let colorSpace = CGColorSpaceCreateDeviceRGB()
+            let colors = [
+                UIColor.pedidosOrange.withAlphaComponent(0.2).cgColor,
+                UIColor.pedidosOrange.withAlphaComponent(0.4).cgColor
+            ]
+            let gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: [0.0, 1.0])!
+            cgContext.drawRadialGradient(
+                gradient,
+                startCenter: center,
+                startRadius: 0,
+                endCenter: center,
+                endRadius: radius,
+                options: []
+            )
+            
+            // Desenhar scooter (retângulo arredondado)
+            let scooterWidth: CGFloat = size.width * 0.6
+            let scooterHeight: CGFloat = size.height * 0.15
+            let scooterY = size.height * 0.7
+            let scooterX = (size.width - scooterWidth) / 2
+            
             cgContext.setFillColor(UIColor.pedidosOrange.cgColor)
-            
-            // Corpo principal do recibo
-            let receiptPath = CGMutablePath()
-            receiptPath.move(to: CGPoint(x: 6.5 * scale, y: 2 * scale))
-            receiptPath.addLine(to: CGPoint(x: 10.5 * scale, y: 2 * scale))
-            receiptPath.addLine(to: CGPoint(x: 26 * scale, y: 2 * scale))
-            receiptPath.addLine(to: CGPoint(x: 26 * scale, y: 13 * scale))
-            receiptPath.addLine(to: CGPoint(x: 28 * scale, y: 13 * scale))
-            receiptPath.addLine(to: CGPoint(x: 28 * scale, y: 11.5 * scale))
-            receiptPath.addLine(to: CGPoint(x: 28 * scale, y: 5.5 * scale))
-            receiptPath.addLine(to: CGPoint(x: 23 * scale, y: 5.5 * scale))
-            receiptPath.addLine(to: CGPoint(x: 23 * scale, y: 27.1 * scale))
-            receiptPath.addLine(to: CGPoint(x: 7 * scale, y: 27.1 * scale))
-            receiptPath.addLine(to: CGPoint(x: 7 * scale, y: 5.5 * scale))
-            receiptPath.closeSubpath()
-            
-            cgContext.addPath(receiptPath)
+            let scooterRect = CGRect(x: scooterX, y: scooterY, width: scooterWidth, height: scooterHeight)
+            let scooterPath = UIBezierPath(roundedRect: scooterRect, cornerRadius: scooterHeight / 2)
+            cgContext.addPath(scooterPath.cgPath)
             cgContext.fillPath()
             
-            // Linhas horizontais do recibo
-            cgContext.setStrokeColor(UIColor.pedidosOrange.cgColor)
-            cgContext.setLineWidth(scale * 0.5)
+            // Rodas do scooter
+            let wheelRadius: CGFloat = size.width * 0.08
+            let wheelY = scooterY + scooterHeight
             
-            let lineYPositions: [CGFloat] = [9, 12, 16, 20]
-            for yPos in lineYPositions {
-                let y = yPos * scale
-                cgContext.move(to: CGPoint(x: 13 * scale, y: y))
-                cgContext.addLine(to: CGPoint(x: 19 * scale, y: y))
-            }
+            // Roda esquerda
+            cgContext.setFillColor(UIColor.darkGray.cgColor)
+            cgContext.fillEllipse(in: CGRect(
+                x: scooterX + scooterWidth * 0.2 - wheelRadius,
+                y: wheelY - wheelRadius,
+                width: wheelRadius * 2,
+                height: wheelRadius * 2
+            ))
             
-            // Linhas menores à direita
-            let smallLineYPositions: [CGFloat] = [12, 16, 20]
-            for yPos in smallLineYPositions {
-                let y = yPos * scale
-                cgContext.move(to: CGPoint(x: 20 * scale, y: y))
-                cgContext.addLine(to: CGPoint(x: 21 * scale, y: y))
-            }
+            // Roda direita
+            cgContext.fillEllipse(in: CGRect(
+                x: scooterX + scooterWidth * 0.8 - wheelRadius,
+                y: wheelY - wheelRadius,
+                width: wheelRadius * 2,
+                height: wheelRadius * 2
+            ))
             
-            cgContext.strokePath()
+            // Corpo do entregador (círculo para cabeça, retângulo para corpo)
+            let headRadius: CGFloat = size.width * 0.12
+            let headY = scooterY - headRadius - size.height * 0.05
+            
+            // Cabeça
+            cgContext.setFillColor(UIColor.pedidosOrange.cgColor)
+            cgContext.fillEllipse(in: CGRect(
+                x: center.x - headRadius,
+                y: headY - headRadius,
+                width: headRadius * 2,
+                height: headRadius * 2
+            ))
+            
+            // Corpo (retângulo arredondado)
+            let bodyWidth: CGFloat = size.width * 0.25
+            let bodyHeight: CGFloat = size.height * 0.2
+            let bodyRect = CGRect(
+                x: center.x - bodyWidth / 2,
+                y: headY + headRadius,
+                width: bodyWidth,
+                height: bodyHeight
+            )
+            let bodyPath = UIBezierPath(roundedRect: bodyRect, cornerRadius: 4)
+            cgContext.addPath(bodyPath.cgPath)
+            cgContext.fillPath()
+            
+            // Braços estendidos
+            let armWidth: CGFloat = size.width * 0.08
+            let armHeight: CGFloat = size.height * 0.12
+            let armY = headY + headRadius + bodyHeight * 0.2
+            
+            // Braço esquerdo
+            cgContext.fillEllipse(in: CGRect(
+                x: center.x - bodyWidth / 2 - armWidth,
+                y: armY,
+                width: armWidth,
+                height: armHeight
+            ))
+            
+            // Braço direito
+            cgContext.fillEllipse(in: CGRect(
+                x: center.x + bodyWidth / 2,
+                y: armY,
+                width: armWidth,
+                height: armHeight
+            ))
+            
+            // Bolsa de entrega (pequeno retângulo na parte de trás)
+            let bagWidth: CGFloat = size.width * 0.15
+            let bagHeight: CGFloat = size.height * 0.12
+            let bagRect = CGRect(
+                x: center.x + bodyWidth / 2 - bagWidth * 0.3,
+                y: headY + headRadius + bodyHeight * 0.3,
+                width: bagWidth,
+                height: bagHeight
+            )
+            let bagPath = UIBezierPath(roundedRect: bagRect, cornerRadius: 3)
+            cgContext.setFillColor(UIColor.pedidosOrange.withAlphaComponent(0.8).cgColor)
+            cgContext.addPath(bagPath.cgPath)
+            cgContext.fillPath()
         }
         
         imageView.image = image
-        imageView.tintColor = .pedidosOrange
+        imageView.tintColor = nil // Não aplicar tint, já temos cores definidas
     }
 }
 
@@ -176,7 +244,7 @@ extension LogoView {
             let receiptY = (size.height - receiptHeight) / 2
             
             let receiptRect = CGRect(x: receiptX, y: receiptY, width: receiptWidth, height: receiptHeight)
-            cgContext.fillRect(receiptRect)
+            cgContext.fill(receiptRect)
             
             // Linhas do recibo em laranja
             cgContext.setStrokeColor(UIColor(red: 234/255, green: 88/255, blue: 12/255, alpha: 1.0).cgColor)

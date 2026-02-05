@@ -54,10 +54,53 @@ struct PriorityConversation: Codable {
     
     enum CodingKeys: String, CodingKey {
         case phone
-        case phoneFormatted = "phone_formatted"
-        case whatsappUrl = "whatsapp_url"
-        case waitTime = "wait_time"
+        case phoneFormatted
+        case whatsappUrl
+        case waitTime
         case timestamp
-        case lastMessage = "last_message"
+        case lastMessage
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        phone = try container.decode(String.self, forKey: .phone)
+        
+        // phoneFormatted - aceita String ou usa phone como fallback
+        phoneFormatted = (try? container.decode(String.self, forKey: .phoneFormatted)) ?? phone
+        
+        // whatsappUrl - aceita String ou gera URL como fallback
+        whatsappUrl = (try? container.decode(String.self, forKey: .whatsappUrl)) ?? "https://wa.me/\(phone)"
+        
+        // waitTime - aceita Int ou Double, default 0
+        if let waitTimeInt = try? container.decode(Int.self, forKey: .waitTime) {
+            waitTime = waitTimeInt
+        } else if let waitTimeDouble = try? container.decode(Double.self, forKey: .waitTime) {
+            waitTime = Int(waitTimeDouble)
+        } else {
+            waitTime = 0
+        }
+        
+        // timestamp - aceita Int64, Int ou Double, default agora
+        if let timestampValue = try? container.decode(Int64.self, forKey: .timestamp) {
+            timestamp = timestampValue
+        } else if let timestampInt = try? container.decode(Int.self, forKey: .timestamp) {
+            timestamp = Int64(timestampInt)
+        } else if let timestampDouble = try? container.decode(Double.self, forKey: .timestamp) {
+            timestamp = Int64(timestampDouble)
+        } else {
+            timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+        }
+        
+        // lastMessage - aceita Int64, Int ou Double, default timestamp
+        if let lastMessageValue = try? container.decode(Int64.self, forKey: .lastMessage) {
+            lastMessage = lastMessageValue
+        } else if let lastMessageInt = try? container.decode(Int.self, forKey: .lastMessage) {
+            lastMessage = Int64(lastMessageInt)
+        } else if let lastMessageDouble = try? container.decode(Double.self, forKey: .lastMessage) {
+            lastMessage = Int64(lastMessageDouble)
+        } else {
+            lastMessage = timestamp
+        }
     }
 }

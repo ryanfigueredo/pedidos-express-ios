@@ -42,22 +42,91 @@ struct Order: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         id = try container.decode(String.self, forKey: .id)
-        customerName = try container.decode(String.self, forKey: .customerName)
-        customerPhone = try container.decode(String.self, forKey: .customerPhone)
+        
+        // customerName pode não existir - usar valor padrão se não encontrar
+        if let customerNameValue = try? container.decode(String.self, forKey: .customerName) {
+            customerName = customerNameValue
+        } else {
+            customerName = "Cliente"
+        }
+        
+        // customerPhone pode não existir - usar valor padrão se não encontrar
+        if let customerPhoneValue = try? container.decode(String.self, forKey: .customerPhone) {
+            customerPhone = customerPhoneValue
+        } else {
+            customerPhone = ""
+        }
+        
         items = try container.decode([OrderItem].self, forKey: .items)
         
-        // totalPrice pode vir como Double ou String
+        // totalPrice pode vir como Double, String, ou Int
+        var decodedTotalPrice: Double = 0.0
+        
         if let totalPriceDouble = try? container.decode(Double.self, forKey: .totalPrice) {
-            totalPrice = totalPriceDouble
-        } else if let totalPriceString = try? container.decode(String.self, forKey: .totalPrice),
-                  let totalPriceDouble = Double(totalPriceString) {
-            totalPrice = totalPriceDouble
+            decodedTotalPrice = totalPriceDouble
+            #if DEBUG
+            print("   💰 totalPrice decodificado como Double: \(totalPriceDouble)")
+            #endif
+        } else if let totalPriceInt = try? container.decode(Int.self, forKey: .totalPrice) {
+            decodedTotalPrice = Double(totalPriceInt)
+            #if DEBUG
+            print("   💰 totalPrice decodificado como Int: \(totalPriceInt) -> \(decodedTotalPrice)")
+            #endif
+        } else if let totalPriceString = try? container.decode(String.self, forKey: .totalPrice) {
+            // Tentar converter string para double
+            if let totalPriceDouble = Double(totalPriceString) {
+                decodedTotalPrice = totalPriceDouble
+                #if DEBUG
+                print("   💰 totalPrice decodificado como String: '\(totalPriceString)' -> \(totalPriceDouble)")
+                #endif
+            } else {
+                // Se falhar, tentar remover caracteres não numéricos
+                let cleaned = totalPriceString.replacingOccurrences(of: "[^0-9.,]", with: "", options: .regularExpression)
+                    .replacingOccurrences(of: ",", with: ".")
+                if let totalPriceDouble = Double(cleaned) {
+                    decodedTotalPrice = totalPriceDouble
+                    #if DEBUG
+                    print("   💰 totalPrice limpo e convertido: '\(totalPriceString)' -> '\(cleaned)' -> \(totalPriceDouble)")
+                    #endif
+                } else {
+                    #if DEBUG
+                    print("   ⚠️ totalPrice não pôde ser convertido de '\(totalPriceString)'")
+                    #endif
+                }
+            }
         } else {
-            totalPrice = 0.0
+            #if DEBUG
+            print("   ⚠️ totalPrice não encontrado ou null")
+            #endif
+        }
+        
+        // Se o total decodificado for 0 ou inválido, calcular a partir dos itens
+        if decodedTotalPrice <= 0 && !items.isEmpty {
+            let calculatedTotal = items.reduce(0.0) { $0 + (Double($1.quantity) * $1.price) }
+            totalPrice = calculatedTotal
+            #if DEBUG
+            print("   💰 totalPrice calculado a partir dos itens: \(calculatedTotal)")
+            #endif
+        } else {
+            totalPrice = decodedTotalPrice
         }
         
         status = try container.decode(String.self, forKey: .status)
-        createdAt = try container.decode(String.self, forKey: .createdAt)
+        
+        // createdAt pode vir como String, null, ou número (timestamp)
+        // Usar decodeIfPresent para lidar com valores null
+        if let createdAtString = try container.decodeIfPresent(String.self, forKey: .createdAt) {
+            createdAt = createdAtString
+        } else if let createdAtTimestamp = try container.decodeIfPresent(Double.self, forKey: .createdAt) {
+            // Se vier como timestamp numérico, converter para ISO string
+            let date = Date(timeIntervalSince1970: createdAtTimestamp / 1000.0) // Assumir milissegundos
+            let formatter = ISO8601DateFormatter()
+            createdAt = formatter.string(from: date)
+        } else {
+            // Valor é null ou não existe - usar data atual como fallback
+            let formatter = ISO8601DateFormatter()
+            createdAt = formatter.string(from: Date())
+        }
         
         // Campos opcionais
         displayId = try? container.decode(String.self, forKey: .displayId)
@@ -135,8 +204,28 @@ struct OrderItem: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try? container.decode(String.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
-        quantity = try container.decode(Int.self, forKey: .quantity)
-        price = try container.decode(Double.self, forKey: .price)
+        
+        // quantity pode vir como Int ou Double
+        if let quantityInt = try? container.decode(Int.self, forKey: .quantity) {
+            quantity = quantityInt
+        } else if let quantityDouble = try? container.decode(Double.self, forKey: .quantity) {
+            quantity = Int(quantityDouble)
+        } else if let quantityString = try? container.decode(String.self, forKey: .quantity),
+                  let quantityInt = Int(quantityString) {
+            quantity = quantityInt
+        } else {
+            quantity = 1 // Valor padrão
+        }
+        
+        // price pode vir como Double ou String
+        if let priceDouble = try? container.decode(Double.self, forKey: .price) {
+            price = priceDouble
+        } else if let priceString = try? container.decode(String.self, forKey: .price),
+                  let priceDouble = Double(priceString) {
+            price = priceDouble
+        } else {
+            price = 0.0 // Valor padrão
+        }
     }
     
     func encode(to encoder: Encoder) throws {

@@ -1,0 +1,12 @@
+{
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/AppDelegate.swift" : {
+    "abi-baseline-json" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress.abi.json",
+    "const-values" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress-primary.swiftconstvalues",
+    "dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress-primary.d",
+    "diagnostics" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress-primary.dia",
+    "objc-header" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress-Swift.h",
+    "swiftdoc" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress.swiftdoc",
+    "swiftmodule" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress.swiftmodule",
+    "swiftsourceinfo" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Release-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/PedidosExpress.swiftsourceinfo"
+  }
+}

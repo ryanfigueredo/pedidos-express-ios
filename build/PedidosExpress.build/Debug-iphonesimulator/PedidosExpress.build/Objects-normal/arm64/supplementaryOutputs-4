@@ -1,0 +1,23 @@
+{
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/SceneDelegate.swift" : {
+    "const-values" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/SceneDelegate.swiftconstvalues",
+    "dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/SceneDelegate.d",
+    "diagnostics" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/SceneDelegate.dia",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/SceneDelegate.o",
+    "swift-dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/SceneDelegate.swiftdeps"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/LoginViewController.swift" : {
+    "const-values" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/LoginViewController.swiftconstvalues",
+    "dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/LoginViewController.d",
+    "diagnostics" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/LoginViewController.dia",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/LoginViewController.o",
+    "swift-dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/LoginViewController.swiftdeps"
+  },
+  "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/PedidosExpress/ViewControllers/MainNavigationViewController.swift" : {
+    "const-values" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/MainNavigationViewController.swiftconstvalues",
+    "dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/MainNavigationViewController.d",
+    "diagnostics" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/MainNavigationViewController.dia",
+    "object" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/MainNavigationViewController.o",
+    "swift-dependencies" : "/Users/ryanfigueredo/Dev/PedidosExpress/app-swift/build/PedidosExpress.build/Debug-iphonesimulator/PedidosExpress.build/Objects-normal/arm64/MainNavigationViewController.swiftdeps"
+  }
+}

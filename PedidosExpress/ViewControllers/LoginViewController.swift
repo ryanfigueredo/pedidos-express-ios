@@ -194,7 +194,24 @@ class LoginViewController: UIViewController {
                     progressIndicator.stopAnimating()
                     progressIndicator.isHidden = true
                     loginButton.isEnabled = true
-                    showAlert(title: "Erro", message: error.localizedDescription)
+                    
+                    #if DEBUG
+                    print("❌ LoginViewController: Erro no login - \(error)")
+                    print("❌ LoginViewController: Tipo do erro: \(type(of: error))")
+                    if let apiError = error as? ApiError {
+                        print("❌ LoginViewController: ApiError - \(apiError.localizedDescription)")
+                    }
+                    #endif
+                    
+                    // Mostrar mensagem de erro mais amigável
+                    let errorMessage: String
+                    if let apiError = error as? ApiError {
+                        errorMessage = apiError.localizedDescription
+                    } else {
+                        errorMessage = error.localizedDescription
+                    }
+                    
+                    showAlert(title: "Erro no Login", message: errorMessage)
                 }
             }
         }
