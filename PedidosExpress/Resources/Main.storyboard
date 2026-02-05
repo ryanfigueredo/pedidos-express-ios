@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21679"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Login View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController storyboardIdentifier="LoginViewController" id="BYZ-38-t0r" customClass="LoginViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="stack-view-login">
+                                <rect key="frame" x="40" y="300" width="313" height="252"/>
+                                <subviews>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Usuário" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="username-textfield">
+                                        <rect key="frame" x="0.0" y="0.0" width="313" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Senha" textAlignment="natural" minimumFontSize="17" secureTextEntry="YES" translatesAutoresizingMaskIntoConstraints="NO" id="password-textfield">
+                                        <rect key="frame" x="0.0" y="54" width="313" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="login-button">
+                                        <rect key="frame" x="0.0" y="108" width="313" height="44"/>
+                                        <state key="normal" title="Entrar"/>
+                                        <buttonConfiguration key="configuration" style="filled" title="Entrar"/>
+                                        <connections>
+                                            <action selector="loginButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="login-action"/>
+                                        </connections>
+                                    </button>
+                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="NO" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="progress-indicator">
+                                        <rect key="frame" x="146.66666666666666" y="172" width="20" height="20"/>
+                                    </activityIndicatorView>
+                                </subviews>
+                            </stackView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pedidos Express" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="title-label">
+                                <rect key="frame" x="40" y="200" width="313" height="43.333333333333314"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
+                                <color key="textColor" systemColor="labelColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="title-label" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="title-center-x"/>
+                            <constraint firstItem="stack-view-login" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="stack-center-x"/>
+                            <constraint firstItem="title-label" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="title-leading"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="title-label" secondAttribute="trailing" constant="40" id="title-trailing"/>
+                            <constraint firstItem="stack-view-login" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="stack-leading"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="stack-view-login" secondAttribute="trailing" constant="40" id="stack-trailing"/>
+                            <constraint firstItem="title-label" firstAttribute="bottom" secondItem="stack-view-login" secondAttribute="top" constant="-56.666666666666686" id="title-bottom"/>
+                            <constraint firstItem="stack-view-login" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="200" id="stack-top"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="loginButton" destination="login-button" id="login-btn-outlet"/>
+                        <outlet property="passwordTextField" destination="password-textfield" id="password-outlet"/>
+                        <outlet property="progressIndicator" destination="progress-indicator" id="progress-outlet"/>
+                        <outlet property="usernameTextField" destination="username-textfield" id="username-outlet"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="20" y="0"/>
+        </scene>
+        <!--Main Navigation View Controller-->
+        <scene sceneID="main-nav-scene">
+            <objects>
+                <tabBarController storyboardIdentifier="MainNavigationViewController" id="main-nav-vc" customClass="MainNavigationViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <tabBar key="tabBar" contentMode="scaleToFill" id="tab-bar">
+                        <rect key="frame" x="0.0" y="975" width="768" height="49"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="orders-vc" kind="relationship" relationship="viewControllers" id="segue-orders"/>
+                        <segue destination="dashboard-vc" kind="relationship" relationship="viewControllers" id="segue-dashboard"/>
+                        <segue destination="menu-vc" kind="relationship" relationship="viewControllers" id="segue-menu"/>
+                        <segue destination="support-vc" kind="relationship" relationship="viewControllers" id="segue-support"/>
+                        <segue destination="settings-vc" kind="relationship" relationship="viewControllers" id="segue-settings"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-responder-nav" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="750" y="0"/>
+        </scene>
+        <!--Orders View Controller-->
+        <scene sceneID="orders-scene">
+            <objects>
+                <viewController id="orders-vc" customClass="OrdersViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="orders-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Pedidos" image="list.bullet" catalog="system" id="orders-tab"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="orders-first-responder" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1500" y="0"/>
+        </scene>
+        <!--Dashboard View Controller-->
+        <scene sceneID="dashboard-scene">
+            <objects>
+                <viewController id="dashboard-vc" customClass="DashboardViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="dashboard-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Dashboard" image="chart.bar" catalog="system" id="dashboard-tab"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dashboard-first-responder" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2250" y="0"/>
+        </scene>
+        <!--Menu View Controller-->
+        <scene sceneID="menu-scene">
+            <objects>
+                <viewController id="menu-vc" customClass="MenuViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="menu-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Cardápio" image="menucard" catalog="system" id="menu-tab"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="menu-first-responder" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3000" y="0"/>
+        </scene>
+        <!--Support View Controller-->
+        <scene sceneID="support-scene">
+            <objects>
+                <viewController id="support-vc" customClass="SupportViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="support-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Suporte" image="message" catalog="system" id="support-tab"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="support-first-responder" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3750" y="0"/>
+        </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="settings-scene">
+            <objects>
+                <viewController id="settings-vc" customClass="SettingsViewController" customModule="PedidosExpress" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="settings-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Config" image="gearshape" catalog="system" id="settings-tab"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="settings-first-responder" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4500" y="0"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
