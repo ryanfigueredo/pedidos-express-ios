@@ -273,12 +273,103 @@ class PrinterHelper: NSObject, ObservableObject {
     }
     
     func printOrder(_ order: Order, completion: ((Bool, String?) -> Void)? = nil) {
-        logger.info("🖨️ PrinterHelper: Imprimindo pedido #\(order.displayId ?? order.id)")
+        let orderId = order.displayId ?? order.id
+        logger.info("🖨️ PrinterHelper: Imprimindo pedido #\(orderId)")
+        print("🖨️ PrinterHelper: Imprimindo pedido #\(orderId)")
+        
+        // Log do estado inicial
+        let initialStateMsg = "📊 PrinterHelper.printOrder: Estado inicial - isConnected: \(isConnected), peripheral: \(connectedPeripheral?.name ?? "nil"), state: \(connectedPeripheral?.state.rawValue ?? -1), characteristic: \(printerCharacteristic != nil ? "sim" : "nil")"
+        logger.info("\(initialStateMsg)")
+        print("\(initialStateMsg)")
+        
+        // Verificar e atualizar estado de conexão antes de imprimir
+        if let peripheral = connectedPeripheral, peripheral.state == .connected {
+            if !isConnected {
+                logger.warning("⚠️ PrinterHelper: Periférico conectado mas isConnected está false. Atualizando estado...")
+                print("⚠️ PrinterHelper: Periférico conectado mas isConnected está false. Atualizando estado...")
+                isConnected = true
+            }
+            // Se não temos característica mas temos periférico conectado, tentar encontrar
+            if printerCharacteristic == nil {
+                logger.warning("⚠️ PrinterHelper: Característica não definida. Procurando nas características já descobertas...")
+                print("⚠️ PrinterHelper: Característica não definida. Procurando nas características já descobertas...")
+                if let services = peripheral.services {
+                    for service in services {
+                        if (service.uuid == printerServiceUUID || service.uuid == printerServiceUUIDAlt),
+                           let characteristics = service.characteristics, !characteristics.isEmpty {
+                            for char in characteristics {
+                                if char.properties.contains(.write) || char.properties.contains(.writeWithoutResponse) {
+                                    printerCharacteristic = char
+                                    logger.info("✅ PrinterHelper: Característica encontrada: \(char.uuid)")
+                                    print("✅ PrinterHelper: Característica encontrada: \(char.uuid)")
+                                    break
+                                }
+                            }
+                            if printerCharacteristic == nil, let firstChar = characteristics.first {
+                                printerCharacteristic = firstChar
+                                logger.info("✅ PrinterHelper: Usando primeira característica disponível: \(firstChar.uuid)")
+                                print("✅ PrinterHelper: Usando primeira característica disponível: \(firstChar.uuid)")
+                            }
+                            if printerCharacteristic != nil {
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Log do estado após verificação
+        let finalStateMsg = "📊 PrinterHelper.printOrder: Estado após verificação - isConnected: \(isConnected), peripheral: \(connectedPeripheral?.name ?? "nil"), state: \(connectedPeripheral?.state.rawValue ?? -1), characteristic: \(printerCharacteristic != nil ? "sim" : "nil")"
+        logger.info("\(finalStateMsg)")
+        print("\(finalStateMsg)")
+        
         let orderText = formatOrder(order)
+        print("📝 PrinterHelper.printOrder: Texto formatado (\(orderText.count) caracteres), chamando printFormattedText...")
         printFormattedText(orderText, completion: completion)
     }
     
     func testPrint() {
+        logger.info("🖨️ PrinterHelper: Iniciando teste de impressão...")
+        print("🖨️ PrinterHelper: Iniciando teste de impressão...")
+        
+        // Verificar e atualizar estado de conexão antes de imprimir (igual ao printOrder)
+        if let peripheral = connectedPeripheral, peripheral.state == .connected {
+            if !isConnected {
+                logger.warning("⚠️ PrinterHelper: Periférico conectado mas isConnected está false. Atualizando estado...")
+                print("⚠️ PrinterHelper: Periférico conectado mas isConnected está false. Atualizando estado...")
+                isConnected = true
+            }
+            // Se não temos característica mas temos periférico conectado, tentar encontrar
+            if printerCharacteristic == nil {
+                logger.warning("⚠️ PrinterHelper: Característica não definida. Procurando nas características já descobertas...")
+                print("⚠️ PrinterHelper: Característica não definida. Procurando nas características já descobertas...")
+                if let services = peripheral.services {
+                    for service in services {
+                        if (service.uuid == printerServiceUUID || service.uuid == printerServiceUUIDAlt),
+                           let characteristics = service.characteristics, !characteristics.isEmpty {
+                            for char in characteristics {
+                                if char.properties.contains(.write) || char.properties.contains(.writeWithoutResponse) {
+                                    printerCharacteristic = char
+                                    logger.info("✅ PrinterHelper: Característica encontrada: \(char.uuid)")
+                                    print("✅ PrinterHelper: Característica encontrada: \(char.uuid)")
+                                    break
+                                }
+                            }
+                            if printerCharacteristic == nil, let firstChar = characteristics.first {
+                                printerCharacteristic = firstChar
+                                logger.info("✅ PrinterHelper: Usando primeira característica disponível: \(firstChar.uuid)")
+                                print("✅ PrinterHelper: Usando primeira característica disponível: \(firstChar.uuid)")
+                            }
+                            if printerCharacteristic != nil {
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         let testText = """
             [C]<b>TESTE DE IMPRESSÃO</b>
             [C]Pedidos Express
@@ -295,8 +386,28 @@ class PrinterHelper: NSObject, ObservableObject {
         printFormattedText(testText)
     }
     
+    /// Remove "Hambúrguer" ou "Hamburguer" do início do nome do produto
+    private func removeHamburguerPrefix(_ productName: String) -> String {
+        // Usar regex case-insensitive para remover "Hambúrguer" ou "Hamburguer" do início
+        let pattern = "^[Hh]amb[uú]rguer\\s+"
+        if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: productName.utf16.count)
+            let result = regex.stringByReplacingMatches(in: productName, options: [], range: range, withTemplate: "")
+            return result.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return productName
+    }
+    
     private func formatOrder(_ order: Order) -> String {
-        let displayId = order.displayId ?? String(order.id.prefix(8))
+        // Usar displayId se disponível, senão usar os primeiros 8 caracteres do ID
+        // Limpar qualquer caractere especial que possa estar no displayId
+        let displayId: String
+        if let orderDisplayId = order.displayId, !orderDisplayId.isEmpty {
+            // Remover caracteres especiais e espaços extras, manter apenas alfanuméricos e hífen
+            displayId = orderDisplayId.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            displayId = String(order.id.prefix(8))
+        }
         
         // Converter data para horário Brasil (GMT-3)
         let timeStr: String
@@ -319,6 +430,8 @@ class PrinterHelper: NSObject, ObservableObject {
             addressInfo = "Comer no restaurante"
         }
         
+        // Formatar texto igual ao Kotlin
+        // Usar tags que são convertidas para ESC/POS: [C], [L], <b>, </b>, <font size='big'>, </font>
         var orderText = "[C]<b>PEDIDO #\(displayId)</b>\n\n"
         orderText += "[L]Cliente: \(order.customerPhone)\n"
         orderText += "[L]Horário: \(timeStr)\n"
@@ -326,7 +439,8 @@ class PrinterHelper: NSObject, ObservableObject {
         orderText += "[L]<font size='big'><b>ITENS:</b></font>\n"
         
         for item in order.items {
-            orderText += "[L]<font size='big'>\(item.quantity)x \(item.name)</font>\n"
+            let productName = removeHamburguerPrefix(item.name)
+            orderText += "[L]<font size='big'>\(item.quantity)x \(productName)</font>\n"
         }
         
         orderText += "\n\n"
@@ -347,14 +461,27 @@ class PrinterHelper: NSObject, ObservableObject {
         // Inicializar impressora
         data.append(ESC_POS_INIT)
         
+        // Comandos ESC/POS para fonte dupla altura e largura
+        // ESC ! n onde n = 0x30 (48) = altura dupla (bit 4) + largura dupla (bit 5)
+        let doubleSizeOn = "\u{1B}!\u{30}" // ESC ! 0x30
+        let doubleSizeOff = "\u{1B}!\u{00}" // ESC ! 0x00 (normal)
+        
         // Processar tags de formatação
         var currentText = text
+        
+        // Processar alinhamento primeiro
         currentText = currentText.replacingOccurrences(of: "[C]", with: "\u{1B}a1") // Centralizar
         currentText = currentText.replacingOccurrences(of: "[L]", with: "\u{1B}a0") // Alinhar à esquerda
+        
+        // Processar tags de fonte maior: substituir <font size='big'> por comando ESC/POS
+        currentText = currentText.replacingOccurrences(of: "<font size='big'>", with: doubleSizeOn, options: .caseInsensitive)
+        currentText = currentText.replacingOccurrences(of: "</font>", with: doubleSizeOff, options: .caseInsensitive)
+        
+        // Processar tags de negrito
         currentText = currentText.replacingOccurrences(of: "<b>", with: "\u{1B}E1") // Negrito ON
         currentText = currentText.replacingOccurrences(of: "</b>", with: "\u{1B}E0") // Negrito OFF
         
-        // Adicionar texto
+        // Adicionar texto convertido
         if let textData = currentText.data(using: .utf8) {
             data.append(textData)
         }
@@ -476,11 +603,19 @@ extension PrinterHelper: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         if let error = error {
             logger.error("❌ PrinterHelper: Desconectado com erro: \(error.localizedDescription)")
+            print("❌ PrinterHelper: Desconectado com erro: \(error.localizedDescription)")
         } else {
             logger.info("ℹ️ PrinterHelper: Desconectado da impressora")
+            print("ℹ️ PrinterHelper: Desconectado da impressora")
         }
-        isConnected = false
-        printerCharacteristic = nil
+        // Só limpar se for o mesmo periférico que estava conectado
+        if connectedPeripheral?.identifier == peripheral.identifier {
+            isConnected = false
+            printerCharacteristic = nil
+            let stateMsg = "📊 PrinterHelper: Estado limpo após desconexão - isConnected = \(isConnected)"
+            logger.info("\(stateMsg)")
+            print("\(stateMsg)")
+        }
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {

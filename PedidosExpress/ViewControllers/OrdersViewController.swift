@@ -71,12 +71,12 @@ class OrdersViewController: UIViewController {
         refreshControl.addTarget(self, action: #selector(refreshOrders), for: .valueChanged)
         ordersTableView.refreshControl = refreshControl
         
-        // Navigation Bar Button
+        // Navigation Bar Button - Conectar Impressora
         navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "Teste",
+            title: "Impressora",
             style: .plain,
             target: self,
-            action: #selector(testPrint)
+            action: #selector(showPrinterConnection)
         )
         
         // Constraints
@@ -95,10 +95,23 @@ class OrdersViewController: UIViewController {
         ])
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updatePrinterButtonTitle()
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         refreshTimer?.invalidate()
         refreshTimer = nil
+    }
+    
+    private func updatePrinterButtonTitle() {
+        if printerHelper.isConnected {
+            navigationItem.rightBarButtonItem?.title = "Impressora ✓"
+        } else {
+            navigationItem.rightBarButtonItem?.title = "Impressora"
+        }
     }
     
     deinit {
@@ -126,8 +139,121 @@ class OrdersViewController: UIViewController {
         loadOrders(silent: false)
     }
     
-    @objc private func testPrint() {
-        printerHelper.testPrint()
+    @objc private func showPrinterConnection() {
+        let statusMessage = printerHelper.isConnected ? "Conectada" : "Desconectada"
+        let printerName = printerHelper.connectedPeripheral?.name ?? "Nenhuma"
+        let message = "Status: \(statusMessage)\nImpressora: \(printerName)"
+        
+        let alert = UIAlertController(title: "Impressora Bluetooth", message: message, preferredStyle: .actionSheet)
+        
+        // Se já está conectada, mostrar opção de teste
+        if printerHelper.isConnected {
+            alert.addAction(UIAlertAction(title: "Teste de Impressão", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                let logMsg = "🖨️ OrdersViewController: Teste de impressão solicitado"
+                self.logger.info("\(logMsg)")
+                print("\(logMsg)")
+                self.printerHelper.testPrint()
+                self.showAlert(title: "Enviado", message: "Comando de teste enviado para a impressora.")
+            })
+            
+            alert.addAction(UIAlertAction(title: "Desconectar", style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                let logMsg = "🔌 OrdersViewController: Desconectando impressora"
+                self.logger.info("\(logMsg)")
+                print("\(logMsg)")
+                self.printerHelper.disconnect()
+                self.updatePrinterButtonTitle()
+                self.showAlert(title: "Desconectado", message: "Impressora desconectada.")
+            })
+        }
+        
+        // Buscar impressoras
+        alert.addAction(UIAlertAction(title: "Buscar Impressoras", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            let logMsg = "🔍 OrdersViewController: Usuário solicitou busca de impressoras"
+            self.logger.info("\(logMsg)")
+            print("\(logMsg)")
+            self.printerHelper.scanForPrinters()
+            
+            // Mostrar feedback imediato
+            let scanningAlert = UIAlertController(
+                title: "Buscando Impressoras...",
+                message: "Por favor, aguarde. Isso pode levar até 10 segundos.",
+                preferredStyle: .alert
+            )
+            self.present(scanningAlert, animated: true)
+            
+            // Verificar resultados após o scan
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10.5) { [weak self] in
+                scanningAlert.dismiss(animated: true)
+                guard let self = self else { return }
+                self.showPrinterScanResults()
+            }
+        })
+        
+        // Mostrar lista de impressoras disponíveis
+        if !printerHelper.availablePrinters.isEmpty {
+            for printer in printerHelper.availablePrinters {
+                let printerName = printer.name ?? "Impressora sem nome"
+                let isCurrentPrinter = printer.identifier == printerHelper.connectedPeripheral?.identifier
+                let actionTitle = isCurrentPrinter ? "\(printerName) ✓" : printerName
+                
+                alert.addAction(UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.logger.info("🔌 OrdersViewController: Conectando à impressora: \(printerName)")
+                    print("🔌 OrdersViewController: Conectando à impressora: \(printerName)")
+                    self.printerHelper.connectToPrinter(printer)
+                    
+                    let connectingAlert = UIAlertController(
+                        title: "Conectando...",
+                        message: "Conectando à \(printerName)",
+                        preferredStyle: .alert
+                    )
+                    self.present(connectingAlert, animated: true)
+                    
+                    // Aguardar conexão (máximo 10 segundos)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+                        connectingAlert.dismiss(animated: true)
+                        guard let self = self else { return }
+                        self.updatePrinterButtonTitle()
+                        if self.printerHelper.isConnected {
+                            let successMsg = "✅ OrdersViewController: Impressora conectada com sucesso!"
+                            self.logger.info("\(successMsg)")
+                            print("\(successMsg)")
+                            self.showAlert(title: "Conectado", message: "Impressora conectada com sucesso!")
+                        } else {
+                            let errorMsg = "❌ OrdersViewController: Não foi possível conectar à impressora"
+                            self.logger.error("\(errorMsg)")
+                            print("\(errorMsg)")
+                            self.showAlert(title: "Erro", message: "Não foi possível conectar à impressora. Verifique se ela está ligada e próxima.")
+                        }
+                    }
+                })
+            }
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        // Para iPad
+        if let popover = alert.popoverPresentationController {
+            popover.barButtonItem = navigationItem.rightBarButtonItem
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    private func showPrinterScanResults() {
+        let count = printerHelper.availablePrinters.count
+        if count > 0 {
+            let message = "Encontradas \(count) impressora(s).\n\nToque em 'Impressora' novamente para ver a lista e conectar."
+            showAlert(title: "Busca Concluída", message: message)
+        } else {
+            showAlert(
+                title: "Nenhuma Impressora Encontrada",
+                message: "Não foram encontradas impressoras Bluetooth próximas.\n\nCertifique-se de que:\n• A impressora está ligada\n• O Bluetooth está ativado\n• A impressora está próxima ao dispositivo"
+            )
+        }
     }
     
     private func startAutoRefresh() {
@@ -424,6 +550,13 @@ class OrdersViewController: UIViewController {
         let hasConnectedPeripheral = printerHelper.connectedPeripheral != nil && 
                                     printerHelper.connectedPeripheral?.state == .connected
         
+        // Se temos periférico conectado mas isConnected está false, atualizar estado ANTES da verificação
+        if hasConnectedPeripheral && !printerHelper.isConnected {
+            logger.warning("⚠️ OrdersViewController: Periférico conectado mas isConnected está false. Atualizando estado...")
+            print("⚠️ OrdersViewController: Periférico conectado mas isConnected está false. Atualizando estado...")
+            printerHelper.isConnected = true
+        }
+        
         guard printerHelper.isConnected || hasConnectedPeripheral else {
             let errorMsg = "❌ OrdersViewController: Impressora não conectada (isConnected = \(printerHelper.isConnected), hasPeripheral = \(hasConnectedPeripheral))"
             logger.error("\(errorMsg)")
@@ -433,12 +566,6 @@ class OrdersViewController: UIViewController {
                 message: "Conecte uma impressora Bluetooth nas Configurações antes de imprimir."
             )
             return
-        }
-        
-        // Se temos periférico conectado mas isConnected está false, atualizar estado
-        if hasConnectedPeripheral && !printerHelper.isConnected {
-            logger.warning("⚠️ OrdersViewController: Periférico conectado mas isConnected está false. Continuando mesmo assim...")
-            print("⚠️ OrdersViewController: Periférico conectado mas isConnected está false. Continuando mesmo assim...")
         }
         
         logger.info("✅ OrdersViewController: Impressora conectada, enviando pedido para impressão...")
@@ -679,6 +806,27 @@ class OrdersViewController: UIViewController {
         
         Task {
             do {
+                // Verificar credenciais antes de tentar atualizar
+                let authService = AuthService()
+                if let credentials = authService.getCredentials() {
+                    let logMsg = "✅ OrdersViewController: Credenciais encontradas antes de atualizar status - usuário: \(credentials.username)"
+                    logger.info("\(logMsg)")
+                    print("\(logMsg)")
+                } else {
+                    let errorMsg = "❌ OrdersViewController: NENHUMA CREDENCIAL ENCONTRADA antes de atualizar status!"
+                    logger.error("\(errorMsg)")
+                    print("\(errorMsg)")
+                    await MainActor.run {
+                        progressIndicator.stopAnimating()
+                        showAlert(
+                            title: "Sessão Expirada",
+                            message: "Faça login novamente para continuar."
+                        )
+                    }
+                    return
+                }
+                
+                print("📝 OrdersViewController: Chamando apiService.updateOrderStatus para pedido \(order.id) com status \(status)")
                 try await apiService.updateOrderStatus(orderId: order.id, status: status)
                 let successMsg = "✅ OrdersViewController: Status atualizado com sucesso para \(status)"
                 logger.info("\(successMsg)")
@@ -710,11 +858,25 @@ class OrdersViewController: UIViewController {
                     var errorTitle = "Erro"
                     var errorMessage = "Não foi possível atualizar o status do pedido."
                     
+                    var shouldShowAlert = true
+                    
                     if let apiError = error as? ApiError {
                         switch apiError {
                         case .unauthorized:
                             errorTitle = "Sessão Expirada"
                             errorMessage = "Sua sessão expirou. Faça login novamente."
+                            // Fazer logout e redirecionar para login
+                            let authService = AuthService()
+                            authService.logout()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                   let window = windowScene.windows.first {
+                                    let loginVC = LoginViewController()
+                                    window.rootViewController = UINavigationController(rootViewController: loginVC)
+                                    window.makeKeyAndVisible()
+                                }
+                            }
+                            shouldShowAlert = false // Não mostrar alerta, já está redirecionando
                         case .requestFailed:
                             errorTitle = "Erro de Conexão"
                             errorMessage = "Erro ao conectar com o servidor. Verifique sua conexão com a internet."
@@ -733,12 +895,9 @@ class OrdersViewController: UIViewController {
                         }
                     }
                     
-                    self.showAlert(title: errorTitle, message: errorMessage)
-                }
-                await MainActor.run {
-                    self.progressIndicator.stopAnimating()
-                    let userFriendlyMsg = error.localizedDescription.isEmpty ? "Não foi possível atualizar o status do pedido. Verifique sua conexão e tente novamente." : error.localizedDescription
-                    self.showAlert(title: "Erro", message: userFriendlyMsg)
+                    if shouldShowAlert {
+                        self.showAlert(title: errorTitle, message: errorMessage)
+                    }
                 }
             }
         }

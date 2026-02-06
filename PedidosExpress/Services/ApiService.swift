@@ -17,13 +17,16 @@ class ApiService {
     
     private func getAuthHeader() -> String? {
         guard let credentials = authService.getCredentials() else {
+            print("⚠️ ApiService: getAuthHeader() - Sem credenciais salvas")
             return nil
         }
         let credentialsString = "\(credentials.username):\(credentials.password)"
         guard let credentialsData = credentialsString.data(using: .utf8) else {
+            print("⚠️ ApiService: getAuthHeader() - Erro ao converter credenciais para Data")
             return nil
         }
         let encoded = credentialsData.base64EncodedString()
+        print("✅ ApiService: getAuthHeader() - Credenciais encontradas para usuário: \(credentials.username)")
         return "Basic \(encoded)"
     }
     
@@ -58,12 +61,15 @@ class ApiService {
             request.httpBody = body
         }
         
-        #if DEBUG
         print("🌐 ApiService: \(method) \(url)")
         if let userId = getUserId() {
             print("   User ID: \(userId)")
         }
-        #endif
+        if let authHeader = getAuthHeader() {
+            print("   Auth Header presente: \(authHeader.prefix(20))...")
+        } else {
+            print("   ⚠️ Auth Header AUSENTE!")
+        }
         
         return request
     }
@@ -384,16 +390,20 @@ class ApiService {
         let url = "\(baseURL)/api/orders/\(orderId)/status"
         let body = try encoder.encode(["status": status])
         
-        #if DEBUG
         print("📝 ApiService.updateOrderStatus: Atualizando pedido \(orderId) para status '\(status)'")
         print("   URL: \(url)")
-        #endif
+        
+        // Verificar credenciais antes de fazer a requisição
+        if let credentials = authService.getCredentials() {
+            print("✅ ApiService.updateOrderStatus: Credenciais encontradas para usuário: \(credentials.username)")
+        } else {
+            print("❌ ApiService.updateOrderStatus: NENHUMA CREDENCIAL ENCONTRADA!")
+            throw ApiError.unauthorized
+        }
         
         guard let request = buildRequest(url: url, method: "PATCH", body: body) else {
-            #if DEBUG
-            print("❌ ApiService.updateOrderStatus: Não foi possível criar requisição")
-            #endif
-            throw ApiError.invalidURL
+            print("❌ ApiService.updateOrderStatus: Não foi possível criar requisição (provavelmente sem credenciais)")
+            throw ApiError.unauthorized
         }
         
         do {
